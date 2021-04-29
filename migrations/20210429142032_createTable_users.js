@@ -1,4 +1,4 @@
-const tableName = 'retrio_users';
+const tableName = 'users';
 
 exports.up = async function (knex) {
   await knex.schema.createTable(tableName, function (table) {

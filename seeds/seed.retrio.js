@@ -1,18 +1,18 @@
 exports.seed = async function (knex) {
   // Delete table data
-  await knex('retrio_cards').del();
-  await knex('retrio_boards').del();
-  await knex('retrio_teamMembers').del();
-  await knex('retrio_teams').del();
-  await knex('retrio_users').del();
+  await knex('cards').del();
+  await knex('boards').del();
+  await knex('team_members').del();
+  await knex('teams').del();
+  await knex('users').del();
   // Reset users, teams, boards, and cards tables auto increment back to 1
-  await knex.raw('ALTER SEQUENCE retrio_cards_id_seq RESTART WITH 1');
-  await knex.raw('ALTER SEQUENCE retrio_boards_id_seq RESTART WITH 1');
-  await knex.raw('ALTER SEQUENCE retrio_teams_id_seq RESTART WITH 1');
-  await knex.raw('ALTER SEQUENCE retrio_users_id_seq RESTART WITH 1');
+  await knex.raw('ALTER SEQUENCE cards_id_seq RESTART WITH 1');
+  await knex.raw('ALTER SEQUENCE boards_id_seq RESTART WITH 1');
+  await knex.raw('ALTER SEQUENCE teams_id_seq RESTART WITH 1');
+  await knex.raw('ALTER SEQUENCE users_id_seq RESTART WITH 1');
 
   // Insert users into table
-  await knex('retrio_users').insert([
+  await knex('users').insert([
     // 1
     {
       email: 'jim.halpert@dundermifflin.com',
@@ -96,7 +96,7 @@ exports.seed = async function (knex) {
   ]);
 
   // Insert teams into table
-  await knex('retrio_teams').insert([
+  await knex('teams').insert([
     // 1
     {
       name: 'Sales',
@@ -115,7 +115,7 @@ exports.seed = async function (knex) {
   ]);
 
   // Insert teams into table
-  await knex('retrio_teamMembers').insert([
+  await knex('team_members').insert([
     // Sales team members
     {
       user_id: 1,
@@ -206,7 +206,7 @@ exports.seed = async function (knex) {
   ]);
 
   // Insert boards into table
-  await knex('retrio_boards').insert([
+  await knex('boards').insert([
     // 1
     {
       name: 'Sales Retrio Board',
@@ -228,7 +228,7 @@ exports.seed = async function (knex) {
   ]);
 
   // Insert boards into table
-  await knex('retrio_cards').insert([
+  await knex('cards').insert([
     // Board 1 cards
     {
       category: 1,

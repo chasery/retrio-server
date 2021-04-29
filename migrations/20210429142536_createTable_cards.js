@@ -1,4 +1,4 @@
-const tableName = 'retrio_cards';
+const tableName = 'cards';
 
 exports.up = async function (knex) {
   await knex.schema.createTable(tableName, function (table) {
@@ -13,13 +13,13 @@ exports.up = async function (knex) {
     table
       .foreign('board_id')
       .references('id')
-      .inTable('retrio_boards')
+      .inTable('boards')
       .onDelete('CASCADE');
     table.integer('created_by').unsigned().notNullable();
     table
       .foreign('created_by')
       .references('id')
-      .inTable('retrio_users')
+      .inTable('users')
       .onDelete('CASCADE');
     table.timestamps(false, true);
   });
@@ -33,6 +33,7 @@ exports.up = async function (knex) {
   `);
 };
 
-exports.down = function (knex) {
-  return knex.schema.dropTable(tableName);
+exports.down = async function (knex) {
+  await knex.schema.dropTable(tableName);
+  await knex.raw(`DROP TYPE category`);
 };

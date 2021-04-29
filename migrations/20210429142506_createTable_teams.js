@@ -1,4 +1,4 @@
-const tableName = 'retrio_teams';
+const tableName = 'teams';
 
 exports.up = async function (knex) {
   await knex.schema.createTable(tableName, function (table) {
@@ -8,7 +8,7 @@ exports.up = async function (knex) {
     table
       .foreign('owner_id')
       .references('id')
-      .inTable('retrio_users')
+      .inTable('users')
       .onDelete('CASCADE');
     table.timestamps(false, true);
   });
