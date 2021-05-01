@@ -16,81 +16,81 @@ exports.seed = async function (knex) {
     // 1
     {
       email: 'jim.halpert@dundermifflin.com',
-      password: '$2a$12$EYP5KmU/0BjyUeXmqDenJeNHVXZUZYYRK8BaIBYl041Fde2Vwg0dC',
+      password: '$2a$12$3ptOEuFVB/jRIcAQBP17JuPxAdIOij1OuEqBs88mXkRj5Sq8bCn7O',
       first_name: 'Jim',
       last_name: 'Halpert',
     },
     // 2
     {
       email: 'worldsbestboss@dundermifflin.com',
-      password: '$2a$12$EYP5KmU/0BjyUeXmqDenJeNHVXZUZYYRK8BaIBYl041Fde2Vwg0dC',
+      password: '$2a$12$3ptOEuFVB/jRIcAQBP17JuPxAdIOij1OuEqBs88mXkRj5Sq8bCn7O',
       first_name: 'Michael',
       last_name: 'Scott',
     },
     // 3
     {
       email: 'pam.beasley@dundermifflin.com',
-      password: '$2a$12$EYP5KmU/0BjyUeXmqDenJeNHVXZUZYYRK8BaIBYl041Fde2Vwg0dC',
+      password: '$2a$12$3ptOEuFVB/jRIcAQBP17JuPxAdIOij1OuEqBs88mXkRj5Sq8bCn7O',
       first_name: 'Pam',
       last_name: 'Beasley',
     },
     // 4
     {
       email: 'dwight.schrute@dundermifflin.com',
-      password: '$2a$12$EYP5KmU/0BjyUeXmqDenJeNHVXZUZYYRK8BaIBYl041Fde2Vwg0dC',
+      password: '$2a$12$3ptOEuFVB/jRIcAQBP17JuPxAdIOij1OuEqBs88mXkRj5Sq8bCn7O',
     },
     // 5
     {
       email: 'stanley.hudson@dundermifflin.com',
-      password: '$2a$12$EYP5KmU/0BjyUeXmqDenJeNHVXZUZYYRK8BaIBYl041Fde2Vwg0dC',
+      password: '$2a$12$3ptOEuFVB/jRIcAQBP17JuPxAdIOij1OuEqBs88mXkRj5Sq8bCn7O',
       first_name: 'Stanley',
     },
     // 6
     {
       email: 'ryan.howard@dundermifflin.com',
-      password: '$2a$12$EYP5KmU/0BjyUeXmqDenJeNHVXZUZYYRK8BaIBYl041Fde2Vwg0dC',
+      password: '$2a$12$3ptOEuFVB/jRIcAQBP17JuPxAdIOij1OuEqBs88mXkRj5Sq8bCn7O',
       first_name: 'Ryan',
       last_name: 'Howard',
     },
     // 7
     {
       email: 'kevin.malone@dundermifflin.com',
-      password: '$2a$12$EYP5KmU/0BjyUeXmqDenJeNHVXZUZYYRK8BaIBYl041Fde2Vwg0dC',
+      password: '$2a$12$3ptOEuFVB/jRIcAQBP17JuPxAdIOij1OuEqBs88mXkRj5Sq8bCn7O',
       first_name: 'Kevin',
       last_name: 'Malone',
     },
     // 8
     {
       email: 'angela.martin@dundermifflin.com',
-      password: '$2a$12$EYP5KmU/0BjyUeXmqDenJeNHVXZUZYYRK8BaIBYl041Fde2Vwg0dC',
+      password: '$2a$12$3ptOEuFVB/jRIcAQBP17JuPxAdIOij1OuEqBs88mXkRj5Sq8bCn7O',
       first_name: 'Angela',
       last_name: 'Martin',
     },
     // 9
     {
       email: 'oscar.martinez@dundermifflin.com',
-      password: '$2a$12$EYP5KmU/0BjyUeXmqDenJeNHVXZUZYYRK8BaIBYl041Fde2Vwg0dC',
+      password: '$2a$12$3ptOEuFVB/jRIcAQBP17JuPxAdIOij1OuEqBs88mXkRj5Sq8bCn7O',
       first_name: 'Oscar',
       last_name: 'Martinez',
     },
     // 10
     {
       email: 'andy.bernard@dundermifflin.com',
-      password: '$2a$12$EYP5KmU/0BjyUeXmqDenJeNHVXZUZYYRK8BaIBYl041Fde2Vwg0dC',
+      password: '$2a$12$3ptOEuFVB/jRIcAQBP17JuPxAdIOij1OuEqBs88mXkRj5Sq8bCn7O',
       first_name: 'Andy',
       last_name: 'Bernard',
     },
     // 11
     {
       email: 'toby.flenderson@dundermifflin.com',
-      password: '$2a$12$EYP5KmU/0BjyUeXmqDenJeNHVXZUZYYRK8BaIBYl041Fde2Vwg0dC',
+      password: '$2a$12$3ptOEuFVB/jRIcAQBP17JuPxAdIOij1OuEqBs88mXkRj5Sq8bCn7O',
       first_name: 'Toby',
       last_name: 'Flenderson',
     },
     // 12
     {
       email: 'creed.bratton@dundermifflin.com',
-      password: '$2a$12$EYP5KmU/0BjyUeXmqDenJeNHVXZUZYYRK8BaIBYl041Fde2Vwg0dC',
+      password: '$2a$12$3ptOEuFVB/jRIcAQBP17JuPxAdIOij1OuEqBs88mXkRj5Sq8bCn7O',
       first_name: 'Creed',
     },
   ]);

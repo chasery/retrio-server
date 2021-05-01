@@ -170,8 +170,10 @@ describe('Users Endpoints', function () {
             const expectedDate = new Date().toLocaleString('en', {
               timeZone: 'UTC',
             });
-            const actualDate = new Date(res.body.created_at).toLocaleString();
-            expect(actualDate).to.eql(expectedDate);
+            const createdDate = new Date(res.body.created_at).toLocaleString();
+            const updatedDate = new Date(res.body.updated_at).toLocaleString();
+            expect(createdDate).to.eql(expectedDate);
+            expect(updatedDate).to.eql(expectedDate);
           })
           .expect((res) =>
             db
@@ -186,8 +188,10 @@ describe('Users Endpoints', function () {
                 const expectedDate = new Date().toLocaleString('en', {
                   timeZone: 'UTC',
                 });
-                const actualDate = new Date(row.created_at).toLocaleString();
-                expect(actualDate).to.eql(expectedDate);
+                const createdDate = new Date(row.created_at).toLocaleString();
+                const updatedDate = new Date(row.updated_at).toLocaleString();
+                expect(createdDate).to.eql(expectedDate);
+                expect(updatedDate).to.eql(expectedDate);
                 return bcrypt.compare(newUser.password, row.password);
               })
               .then((compareMatch) => {

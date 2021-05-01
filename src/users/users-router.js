@@ -35,7 +35,7 @@ usersRouter.post('/', jsonBodyParser, (req, res, next) => {
           password: hashedPassword,
           first_name,
           last_name,
-          created_at: 'now()',
+          // created_at: 'now()',
         };
 
         return UsersService.insertUser(req.app.get('db'), newUser).then(

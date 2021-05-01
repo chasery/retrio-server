@@ -49,6 +49,7 @@ const UsersService = {
       first_name: xss(user.first_name),
       last_name: xss(user.last_name),
       created_at: new Date(user.created_at),
+      updated_at: new Date(user.updated_at),
     };
   },
 };

@@ -15,6 +15,7 @@ app.use(morgan(morganOption));
 app.use(helmet());
 app.use(cors());
 
+console.log('hi');
 app.use('/api/users', usersRouter);
 app.use('/api/auth', authRouter);
 
