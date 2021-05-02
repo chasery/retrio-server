@@ -100,17 +100,14 @@ exports.seed = async function (knex) {
     // 1
     {
       name: 'Sales',
-      owner_id: 1,
     },
     // 2
     {
       name: 'Leadership',
-      owner_id: 1,
     },
     // 3
     {
       name: 'Accounting',
-      owner_id: 7,
     },
   ]);
 
@@ -120,88 +117,109 @@ exports.seed = async function (knex) {
     {
       user_id: 1,
       team_id: 1,
+      owner: true,
     },
     {
       user_id: 2,
       team_id: 1,
+      owner: false,
     },
     {
       user_id: 3,
       team_id: 1,
+      owner: false,
     },
     {
       user_id: 4,
       team_id: 1,
+      owner: false,
     },
     {
       user_id: 5,
       team_id: 1,
+      owner: false,
     },
     {
       user_id: 10,
       team_id: 1,
+      owner: false,
     },
     {
       user_id: 11,
       team_id: 1,
+      owner: false,
     },
     // Leadership team members
     {
       user_id: 1,
       team_id: 2,
+      owner: true,
     },
     {
       user_id: 2,
       team_id: 2,
+      owner: false,
     },
     {
       user_id: 3,
       team_id: 2,
+      owner: false,
     },
     {
       user_id: 4,
       team_id: 2,
+      owner: false,
     },
     {
       user_id: 6,
       team_id: 2,
+      owner: false,
     },
     {
       user_id: 11,
       team_id: 2,
+      owner: false,
     },
     // Accounting team members
     {
       user_id: 1,
       team_id: 3,
+      owner: false,
     },
     {
       user_id: 2,
       team_id: 3,
+      owner: false,
     },
     {
       user_id: 3,
       team_id: 3,
+      owner: false,
     },
     {
       user_id: 6,
       team_id: 3,
+      owner: false,
     },
     {
       user_id: 7,
       team_id: 3,
+      owner: true,
     },
     {
       user_id: 8,
       team_id: 3,
+      owner: false,
     },
     {
       user_id: 9,
       team_id: 3,
+      owner: false,
     },
     {
       user_id: 11,
       team_id: 3,
+      owner: false,
     },
   ]);
 
@@ -210,24 +228,147 @@ exports.seed = async function (knex) {
     // 1
     {
       name: 'Sales Retrio Board',
-      owner_id: 1,
       team_id: 1,
     },
     // 2
     {
       name: 'Leadership Retrio Board',
-      owner_id: 1,
       team_id: 2,
     },
     // 3
     {
       name: 'Accounting Retrio Board',
-      owner_id: 1,
       team_id: 3,
     },
   ]);
 
-  // Insert boards into table
+  // Insert user_boards into table
+  await knex('user_boards').insert([
+    // 1
+    {
+      board_id: 1,
+      user_id: 1,
+      owner: true,
+    },
+    {
+      board_id: 2,
+      user_id: 1,
+      owner: true,
+    },
+    {
+      board_id: 3,
+      user_id: 1,
+      owner: false,
+    },
+    // 2
+    {
+      board_id: 1,
+      user_id: 2,
+      owner: false,
+    },
+    {
+      board_id: 2,
+      user_id: 2,
+      owner: false,
+    },
+    {
+      board_id: 3,
+      user_id: 2,
+      owner: false,
+    },
+    // 3
+    {
+      board_id: 1,
+      user_id: 3,
+      owner: false,
+    },
+    {
+      board_id: 2,
+      user_id: 3,
+      owner: false,
+    },
+    {
+      board_id: 3,
+      user_id: 3,
+      owner: false,
+    },
+    // 4
+    {
+      board_id: 1,
+      user_id: 4,
+      owner: false,
+    },
+    {
+      board_id: 2,
+      user_id: 4,
+      owner: false,
+    },
+    // 5
+    {
+      board_id: 1,
+      user_id: 5,
+      owner: false,
+    },
+    // 6
+    {
+      board_id: 1,
+      user_id: 6,
+      owner: false,
+    },
+    {
+      board_id: 2,
+      user_id: 6,
+      owner: false,
+    },
+    {
+      board_id: 3,
+      user_id: 6,
+      owner: false,
+    },
+    // 7
+    {
+      board_id: 3,
+      user_id: 7,
+      owner: false,
+    },
+    // 8
+    {
+      board_id: 3,
+      user_id: 8,
+      owner: false,
+    },
+    // 9
+    {
+      board_id: 3,
+      user_id: 9,
+      owner: true,
+    },
+    // 10
+    {
+      board_id: 1,
+      user_id: 10,
+      owner: false,
+    },
+    // 11
+    {
+      board_id: 1,
+      user_id: 11,
+      owner: false,
+    },
+    {
+      board_id: 2,
+      user_id: 11,
+      owner: false,
+    },
+    {
+      board_id: 3,
+      user_id: 11,
+      owner: false,
+    },
+    // 12 - No Board user
+  ]);
+
+  // Insert cards into table
   await knex('cards').insert([
     // Board 1 cards
     {

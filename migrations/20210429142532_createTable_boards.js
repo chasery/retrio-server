@@ -4,12 +4,6 @@ exports.up = async function (knex) {
   await knex.schema.createTable(tableName, function (table) {
     table.increments('id');
     table.string('name', 255).notNullable();
-    table.integer('owner_id').unsigned().notNullable();
-    table
-      .foreign('owner_id')
-      .references('id')
-      .inTable('users')
-      .onDelete('CASCADE');
     table.integer('team_id').unsigned().notNullable();
     table
       .foreign('team_id')

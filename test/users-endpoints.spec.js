@@ -6,7 +6,7 @@ const helpers = require('./test-helpers');
 describe('Users Endpoints', function () {
   let db;
 
-  const { testUsers } = helpers.makeRacksFixtures();
+  const { testUsers } = helpers.makeBoardsFixtures();
   const testUser = testUsers[0];
 
   before('make knex instance', () => {
