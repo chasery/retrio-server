@@ -128,11 +128,99 @@ function makeBoardsArray() {
   ];
 }
 
+function makeCardsArray() {
+  return [
+    // Board 1 cards
+    {
+      id: 1,
+      category: 1,
+      headline: 'We sold a lot of paper!',
+      text:
+        'Thanks to Stanley who landed that huge sale, we moved a lot of paper this month. Keep it up folks!',
+      board_id: 1,
+      created_by: 1,
+    },
+    {
+      id: 2,
+      category: 2,
+      headline: 'My stapler was defiled',
+      text: `Whoever defiled my stapler by putting in to a Jell-o mold, I'll have you know that I will find you.
+
+I WILL HUNT YOU DOWN!
+`,
+      board_id: 1,
+      created_by: 2,
+    },
+    {
+      id: 3,
+      category: 4,
+      headline: 'Thanks Michael',
+      text:
+        "I can't believe I am saying this right now, but thanks for stepping in on that sale Michael.",
+      board_id: 1,
+      created_by: 2,
+    },
+    // Board 2 cards
+    {
+      id: 4,
+      category: 1,
+      headline: 'A lot of paper was moved',
+      text: `Thanks to Stanley who landed that huge sale, we moved a lot of paper this month. Keep it up or we'll shut down the branch`,
+      board_id: 2,
+      created_by: 2,
+    },
+    {
+      id: 5,
+      category: 3,
+      headline: `Sell more paper`,
+      text: `I need a promotion guys.
+Let's work on building up our internet preseence. It's the future of this company against the big box retailers.`,
+      board_id: 2,
+      created_by: 2,
+    },
+    {
+      id: 6,
+      category: 4,
+      headline: `Congratulations Pam`,
+      text: `I couldn't be more proud of you for graduating art school. You're amazing and I know you'll go places.
+      
+Love,
+Jim`,
+      board_id: 2,
+      created_by: 1,
+    },
+    // Board 3 cards
+    {
+      id: 7,
+      category: 1,
+      headline: `My cat cam setup!`,
+      text: `Now I do not have to worry about my cats while at work. I can check in on them any moment of the day!`,
+      board_id: 3,
+      created_by: 3,
+    },
+    {
+      id: 8,
+      category: 2,
+      headline: `I can't stand my team.`,
+      text: `Sigh... All they talk about is food and cats.`,
+      board_id: 3,
+      created_by: 3,
+    },
+    {
+      id: 9,
+      category: 4,
+      headline: `YOU GUYS ARE AMAZING`,
+      text: `I LOVE YOU ALL`,
+      board_id: 3,
+      created_by: 2,
+    },
+  ];
+}
+
 function makeExpectedBoard(board) {
   return {
     id: board.id,
     name: board.name,
-    team_id: board.team_id,
     owner: board.owner,
     created_at: board.created_at.toISOString(),
     updated_at: board.updated_at.toISOString(),
@@ -171,8 +259,16 @@ function makeBoardsFixtures() {
   const testTeamMembers = makeTeamMembersArray();
   const testBoards = makeBoardsArray();
   const testUserBoards = makeUserBoardsArray();
+  const testCards = makeCardsArray();
 
-  return { testUsers, testTeams, testTeamMembers, testBoards, testUserBoards };
+  return {
+    testUsers,
+    testTeams,
+    testTeamMembers,
+    testBoards,
+    testUserBoards,
+    testCards,
+  };
 }
 
 function seedUsers(db, users) {
@@ -206,7 +302,7 @@ function seedTeams(db, teams, teamMembers) {
   });
 }
 
-function seedBoards(db, boards, userBoards) {
+function seedBoards(db, boards, userBoards, cards) {
   // use a transaction to group the queries and auto rollback on any failure
   return db.transaction(async (trx) => {
     await trx.into('boards').insert(boards);
@@ -219,6 +315,13 @@ function seedBoards(db, boards, userBoards) {
     await trx.raw(`SELECT setval('user_boards_id_seq', ?)`, [
       userBoards[userBoards.length - 1].id,
     ]);
+    if (cards) {
+      await trx.into('cards').insert(cards);
+      // update the auto sequence to match the forced id values
+      await trx.raw(`SELECT setval('cards_id_seq', ?)`, [
+        cards[cards.length - 1].id,
+      ]);
+    }
   });
 }
 
@@ -266,6 +369,7 @@ module.exports = {
   makeTeamMembersArray,
   makeBoardsArray,
   makeUserBoardsArray,
+  makeCardsArray,
   makeExpectedBoard,
   makeMaliciousBoard,
   makeBoardsFixtures,

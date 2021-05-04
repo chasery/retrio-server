@@ -11,8 +11,10 @@ describe('Boards Endpoints', function () {
     testTeamMembers,
     testBoards,
     testUserBoards,
+    testCards,
   } = helpers.makeBoardsFixtures();
   const testUser = testUsers[0];
+  const testTeam = testTeams[0];
 
   before('make knex instance', () => {
     db = knex({
@@ -95,61 +97,82 @@ describe('Boards Endpoints', function () {
       });
     });
 
-    // describe(`POST /api/racks`, () => {
-    //   beforeEach('insert racks', () =>
-    //     helpers.seedRacksTables(db, testUsers, testBoards)
-    //   );
+    describe(`POST /api/boards`, () => {
+      beforeEach('insert boards', async () => {
+        await helpers.seedUsers(db, testUsers);
+        await helpers.seedTeams(db, testTeams, testTeamMembers);
+        await helpers.seedBoards(db, testBoards, testUserBoards, testCards);
+      });
 
-    //   it(`responds with 400 and an error message when the 'rack_name' is missing`, () => {
-    //     const newRack = {};
+      const requiredFields = ['name', 'team_id'];
 
-    //     return supertest(app)
-    //       .post('/api/racks')
-    //       .set('Authorization', helpers.makeAuthHeader(testUser))
-    //       .send(newRack)
-    //       .expect(400, {
-    //         error: `Missing 'rack_name' in request body`,
-    //       });
-    //   });
+      requiredFields.forEach((field) => {
+        const newRackItem = {
+          name: 'Beets Board',
+          team_id: 1,
+        };
 
-    //   it(`responds with 201 and the new rack`, function () {
-    //     this.retries(3);
-    //     const newRack = {
-    //       rack_name: 'Test new rack',
-    //     };
+        it(`responds with 400 and an error message when the '${field}' is missing`, () => {
+          delete newRackItem[field];
 
-    //     return supertest(app)
-    //       .post('/api/racks')
-    //       .set('Authorization', helpers.makeAuthHeader(testUser))
-    //       .send(newRack)
-    //       .expect(201)
-    //       .expect((res) => {
-    //         expect(res.body).to.have.property('rack_id');
-    //         expect(res.body.rack_name).to.eql(newRack.rack_name);
-    //         expect(res.body.user_id).to.eql(testUser.id);
-    //         expect(res.body.items).to.eql([]);
-    //         expect(res.headers.location).to.eql(`/api/racks/${res.body.rack_id}`);
-    //         const expectedDate = new Date().toLocaleString();
-    //         const actualDate = new Date(res.body.created_at).toLocaleString();
-    //         expect(actualDate).to.eql(expectedDate);
-    //       })
-    //       .expect((res) =>
-    //         db
-    //           .from('ru_racks')
-    //           .select('*')
-    //           .where({ rack_id: res.body.rack_id })
-    //           .first()
-    //           .then((row) => {
-    //             expect(row.rack_name).to.eql(newRack.rack_name);
-    //             expect(row.user_id).to.eql(testUser.id);
-    //             expect(row.items).to.eql([]);
-    //             const expectedDate = new Date().toLocaleString();
-    //             const actualDate = new Date(row.created_at).toLocaleString();
-    //             expect(actualDate).to.eql(expectedDate);
-    //           })
-    //       );
-    //   });
-    // });
+          return supertest(app)
+            .post('/api/boards')
+            .set('Authorization', helpers.makeAuthHeader(testUser))
+            .send(newRackItem)
+            .expect(400, {
+              error: `Missing '${field}' in request body`,
+            });
+        });
+      });
+
+      it(`responds with 201 and the new rack`, function () {
+        this.retries(3);
+        const newBoard = {
+          name: 'New Test Board',
+          team_id: testTeam.id,
+        };
+
+        return supertest(app)
+          .post('/api/boards')
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .send(newBoard)
+          .expect(201)
+          .expect((res) => {
+            expect(res.body).to.have.property('id');
+            expect(res.body.name).to.eql(newBoard.name);
+            expect(res.body.owner).to.eql(true);
+            expect(res.body.cards).to.eql([]);
+            expect(res.headers.location).to.eql(`/api/boards/${res.body.id}`);
+          })
+          .expect((res) =>
+            db
+              .from('user_boards')
+              .select(
+                'user_boards.owner',
+                'user_boards.user_id',
+                'boards.id',
+                'boards.name',
+                'boards.team_id',
+                'boards.created_at',
+                'boards.updated_at'
+              )
+              .leftJoin('boards', 'user_boards.board_id', 'boards.id')
+              .where('boards.id', res.body.id)
+              .first()
+              .then((row) => {
+                expect(row.name).to.eql(newBoard.name);
+                expect(row.team_id).to.eql(newBoard.team_id);
+                expect(row.user_id).to.eql(testUser.id);
+                expect(row.owner).to.eql(true);
+                const expectedDate = new Date().toLocaleString();
+                const createdDate = new Date(row.created_at).toLocaleString();
+                const updatedDate = new Date(row.updated_at).toLocaleString();
+                expect(createdDate).to.eql(expectedDate);
+                expect(updatedDate).to.eql(expectedDate);
+              })
+          );
+      });
+    });
 
     // describe('PATCH /api/racks/:rackId', () => {
     //   context('Given no racks', () => {

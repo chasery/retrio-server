@@ -15,13 +15,13 @@ boardsRouter
 
     BoardsService.getUserBoards(req.app.get('db'), id)
       .then((boards) => {
-        res.json(boards.map(BoardsService.serializeBoard));
+        res.json(boards.map((board) => BoardsService.serializeBoard(board)));
       })
       .catch(next);
   })
   .post(jsonBodyParser, (req, res, next) => {
-    const { name } = req.body;
-    const newBoard = { name };
+    const { name, team_id } = req.body;
+    const newBoard = { name, team_id };
 
     for (const [key, value] of Object.entries(newBoard))
       if (value == null)
@@ -29,9 +29,24 @@ boardsRouter
           error: `Missing '${key}' in request body`,
         });
 
-    newBoard.user_id = req.user.id;
+    BoardsService.insertBoard(req.app.get('db'), newBoard)
+      .then(([board]) => {
+        const { id } = board;
+        const newUserBoard = {
+          board_id: id,
+          user_id: req.user.id,
+          owner: true,
+        };
 
-    BoardsService.insertRack(req.app.get('db'), newBoard)
+        // Inserts the returned board data into the user_boards table
+        return BoardsService.insertUserBoard(req.app.get('db'), newUserBoard);
+      })
+      .then(([userBoard]) => {
+        const { board_id, user_id } = userBoard;
+
+        // Returns the fully formed board with data from user_boards, boards, cards, and users
+        return BoardsService.getBoardById(req.app.get('db'), user_id, board_id);
+      })
       .then((board) => {
         res
           .status(201)
