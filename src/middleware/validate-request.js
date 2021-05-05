@@ -16,7 +16,7 @@ async function validateBoardRequest(req, res, next) {
       return res.status(401).json({
         error: 'Unauthorized request',
       });
-
+    console.log('Made it through this');
     res.board = await BoardsService.getBoardById(
       req.app.get('db'),
       userBoard.user_id,

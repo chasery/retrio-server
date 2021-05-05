@@ -31,6 +31,7 @@ const BoardsService = {
         'cards.created_at AS card_created_at',
         'cards.updated_at AS card_updated_at',
         'users.id AS user_id',
+        'users.email',
         'users.first_name',
         'users.last_name'
       )
@@ -99,6 +100,7 @@ const BoardsService = {
         owner,
         category,
         user_id,
+        email,
         first_name,
         last_name,
         card_created_at,
@@ -119,7 +121,7 @@ const BoardsService = {
           category: parseFloat(category),
           created_at: card_created_at,
           updated_at: card_updated_at,
-          user: { user_id, first_name, last_name },
+          user: { user_id, email, first_name, last_name },
         });
       }
       return board;
