@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const BoardsService = require('./boards-service');
 const { requireAuth } = require('../middleware/jwt-auth');
-// const { validateBoardRequest } = require('../middleware/validate-request');
+const { validateBoardRequest } = require('../middleware/validate-request');
 
 const boardsRouter = express.Router();
 const jsonBodyParser = express.json();
@@ -29,24 +29,7 @@ boardsRouter
           error: `Missing '${key}' in request body`,
         });
 
-    BoardsService.insertBoard(req.app.get('db'), newBoard)
-      .then(([board]) => {
-        const { id } = board;
-        const newUserBoard = {
-          board_id: id,
-          user_id: req.user.id,
-          owner: true,
-        };
-
-        // Inserts the returned board data into the user_boards table
-        return BoardsService.insertUserBoard(req.app.get('db'), newUserBoard);
-      })
-      .then(([userBoard]) => {
-        const { board_id, user_id } = userBoard;
-
-        // Returns the fully formed board with data from user_boards, boards, cards, and users
-        return BoardsService.getBoardById(req.app.get('db'), user_id, board_id);
-      })
+    BoardsService.insertBoard(req.app.get('db'), newBoard, req.user.id)
       .then((board) => {
         res
           .status(201)
@@ -56,13 +39,13 @@ boardsRouter
       .catch(next);
   });
 
-// boardsRouter
-//   .route('/:rackId')
-//   .all(requireAuth)
-//   .all(validateBoardRequest)
-//   .get((req, res) => {
-//     res.json(BoardsService.serializeRack(res.rack));
-//   })
+boardsRouter
+  .route('/:boardId')
+  .all(requireAuth)
+  .all(validateBoardRequest)
+  .get((req, res) => {
+    res.json(BoardsService.serializeBoard(res.board));
+  });
 //   .patch(jsonBodyParser, (req, res, next) => {
 //     const { id } = req.user;
 //     const { rackId } = req.params;

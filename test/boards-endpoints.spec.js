@@ -15,6 +15,8 @@ describe('Boards Endpoints', function () {
   } = helpers.makeBoardsFixtures();
   const testUser = testUsers[0];
   const testTeam = testTeams[0];
+  const testUserBoard = testUserBoards[0];
+  const testBoard = testBoards[0];
 
   before('make knex instance', () => {
     db = knex({
@@ -73,7 +75,7 @@ describe('Boards Endpoints', function () {
       });
     });
 
-    context(`Given an XSS attack rack`, () => {
+    context(`Given an XSS attack board`, () => {
       const {
         userBoard,
         maliciousBoard,
@@ -97,6 +99,84 @@ describe('Boards Endpoints', function () {
       });
     });
 
+    describe(`GET /api/boards/:boardId`, () => {
+      context(`Given no boards`, () => {
+        beforeEach(() => helpers.seedUsers(db, testUsers));
+
+        it(`responds with 404`, () => {
+          const boardId = 123456;
+          return supertest(app)
+            .get(`/api/boards/${boardId}`)
+            .set('Authorization', helpers.makeAuthHeader(testUser))
+            .expect(404, { error: `Board doesn't exist` });
+        });
+      });
+
+      context(`Given testUser has boards`, () => {
+        beforeEach('insert required boards data', async () => {
+          await helpers.seedUsers(db, testUsers);
+          await helpers.seedTeams(db, testTeams, testTeamMembers);
+          await helpers.seedBoards(db, testBoards, testUserBoards, testCards);
+        });
+
+        it("responds with 200 and only the userId's board", () => {
+          const expectedCards = testCards
+            .filter((card) => card.board_id === testBoard.id)
+            .map((card) => {
+              const expectedUser = testUsers.find(
+                (user) => user.id === card.created_by
+              );
+              return helpers.makeExpectedCard(expectedUser, card);
+            });
+          const expectedBoard = {
+            id: testBoard.id,
+            name: testBoard.name,
+            owner: testUserBoard.owner,
+            cards: expectedCards,
+          };
+
+          return supertest(app)
+            .get(`/api/boards/${testBoard.id}`)
+            .set('Authorization', helpers.makeAuthHeader(testUser))
+            .expect(200, expectedBoard);
+        });
+      });
+
+      context(`Given an XSS attack board`, () => {
+        const { maliciousCard, expectedCard } = helpers.makeMaliciousCard(
+          testUser
+        );
+        const {
+          userBoard,
+          maliciousBoard,
+          expectedBoard,
+        } = helpers.makeMaliciousBoard(testUser, expectedCard);
+
+        beforeEach('insert malicious board and card', async () => {
+          await helpers.seedUsers(db, testUsers);
+          await helpers.seedTeams(db, testTeams, testTeamMembers);
+          await helpers.seedBoards(
+            db,
+            [maliciousBoard],
+            [userBoard],
+            [maliciousCard]
+          );
+        });
+
+        it('removes XSS attack content', () => {
+          return supertest(app)
+            .get(`/api/boards/${maliciousBoard.id}`)
+            .set('Authorization', helpers.makeAuthHeader(testUser))
+            .expect(200)
+            .expect((res) => {
+              expect(res.body.name).to.eql(expectedBoard.name);
+              expect(res.body.cards[0].headline).to.eql(expectedCard.headline);
+              expect(res.body.cards[0].text).to.eql(expectedCard.text);
+            });
+        });
+      });
+    });
+
     describe(`POST /api/boards`, () => {
       beforeEach('insert boards', async () => {
         await helpers.seedUsers(db, testUsers);
@@ -107,25 +187,25 @@ describe('Boards Endpoints', function () {
       const requiredFields = ['name', 'team_id'];
 
       requiredFields.forEach((field) => {
-        const newRackItem = {
+        const newBoardItem = {
           name: 'Beets Board',
           team_id: 1,
         };
 
         it(`responds with 400 and an error message when the '${field}' is missing`, () => {
-          delete newRackItem[field];
+          delete newBoardItem[field];
 
           return supertest(app)
             .post('/api/boards')
             .set('Authorization', helpers.makeAuthHeader(testUser))
-            .send(newRackItem)
+            .send(newBoardItem)
             .expect(400, {
               error: `Missing '${field}' in request body`,
             });
         });
       });
 
-      it(`responds with 201 and the new rack`, function () {
+      it(`responds with 201 and the new board`, function () {
         this.retries(3);
         const newBoard = {
           name: 'New Test Board',

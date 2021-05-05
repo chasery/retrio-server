@@ -1,4 +1,5 @@
 const xss = require('xss');
+const { serializeCard } = require('../cards/cards-service');
 
 const BoardsService = {
   getUserBoards(db, userId) {
@@ -43,8 +44,33 @@ const BoardsService = {
         return reducedBoard;
       });
   },
-  insertBoard(db, newBoard) {
-    return db.insert(newBoard).into('boards').returning('*');
+  getUserBoardById(db, boardId) {
+    return db
+      .from('user_boards')
+      .where('board_id', boardId)
+      .select('board_id', 'user_id')
+      .then(([userBoard]) => userBoard);
+  },
+  insertBoard(db, newBoard, user) {
+    return db.transaction((trx) => {
+      return trx
+        .insert(newBoard)
+        .into('boards')
+        .returning('*')
+        .then(([board]) => {
+          const { id } = board;
+          const newUserBoard = {
+            board_id: id,
+            user_id: user,
+            owner: true,
+          };
+          return this.insertUserBoard(trx, newUserBoard);
+        })
+        .then(([userBoard]) => {
+          const { board_id, user_id } = userBoard;
+          return this.getBoardById(trx, user_id, board_id);
+        });
+    });
   },
   insertUserBoard(db, newUserBoard) {
     return db.insert(newUserBoard).into('user_boards').returning('*');
@@ -71,9 +97,12 @@ const BoardsService = {
         id,
         name,
         owner,
+        category,
         user_id,
         first_name,
         last_name,
+        card_created_at,
+        card_updated_at,
         ...theCard
       } = card;
       board.id = id;
@@ -87,6 +116,9 @@ const BoardsService = {
       if (card.card_id) {
         board.cards.push({
           ...theCard,
+          category: parseFloat(category),
+          created_at: card_created_at,
+          updated_at: card_updated_at,
           user: { user_id, first_name, last_name },
         });
       }
@@ -108,10 +140,12 @@ const BoardsService = {
       };
 
     if (board.cards)
-      serializedBoard = {
-        ...serializedBoard,
-        cards: board.cards,
-      };
+      board.cards = board.cards.map((card) => serializeCard(card));
+
+    serializedBoard = {
+      ...serializedBoard,
+      cards: board.cards,
+    };
 
     return serializedBoard;
   },

@@ -139,6 +139,8 @@ function makeCardsArray() {
         'Thanks to Stanley who landed that huge sale, we moved a lot of paper this month. Keep it up folks!',
       board_id: 1,
       created_by: 1,
+      created_at: new Date('2029-01-22T16:28:32.615Z'),
+      updated_at: new Date('2029-01-22T16:28:32.615Z'),
     },
     {
       id: 2,
@@ -150,6 +152,8 @@ I WILL HUNT YOU DOWN!
 `,
       board_id: 1,
       created_by: 2,
+      created_at: new Date('2029-01-22T16:28:32.615Z'),
+      updated_at: new Date('2029-01-22T16:28:32.615Z'),
     },
     {
       id: 3,
@@ -159,6 +163,8 @@ I WILL HUNT YOU DOWN!
         "I can't believe I am saying this right now, but thanks for stepping in on that sale Michael.",
       board_id: 1,
       created_by: 2,
+      created_at: new Date('2029-01-22T16:28:32.615Z'),
+      updated_at: new Date('2029-01-22T16:28:32.615Z'),
     },
     // Board 2 cards
     {
@@ -168,6 +174,8 @@ I WILL HUNT YOU DOWN!
       text: `Thanks to Stanley who landed that huge sale, we moved a lot of paper this month. Keep it up or we'll shut down the branch`,
       board_id: 2,
       created_by: 2,
+      created_at: new Date('2029-01-22T16:28:32.615Z'),
+      updated_at: new Date('2029-01-22T16:28:32.615Z'),
     },
     {
       id: 5,
@@ -177,6 +185,8 @@ I WILL HUNT YOU DOWN!
 Let's work on building up our internet preseence. It's the future of this company against the big box retailers.`,
       board_id: 2,
       created_by: 2,
+      created_at: new Date('2029-01-22T16:28:32.615Z'),
+      updated_at: new Date('2029-01-22T16:28:32.615Z'),
     },
     {
       id: 6,
@@ -188,6 +198,8 @@ Love,
 Jim`,
       board_id: 2,
       created_by: 1,
+      created_at: new Date('2029-01-22T16:28:32.615Z'),
+      updated_at: new Date('2029-01-22T16:28:32.615Z'),
     },
     // Board 3 cards
     {
@@ -197,6 +209,8 @@ Jim`,
       text: `Now I do not have to worry about my cats while at work. I can check in on them any moment of the day!`,
       board_id: 3,
       created_by: 3,
+      created_at: new Date('2029-01-22T16:28:32.615Z'),
+      updated_at: new Date('2029-01-22T16:28:32.615Z'),
     },
     {
       id: 8,
@@ -205,6 +219,8 @@ Jim`,
       text: `Sigh... All they talk about is food and cats.`,
       board_id: 3,
       created_by: 3,
+      created_at: new Date('2029-01-22T16:28:32.615Z'),
+      updated_at: new Date('2029-01-22T16:28:32.615Z'),
     },
     {
       id: 9,
@@ -213,43 +229,118 @@ Jim`,
       text: `I LOVE YOU ALL`,
       board_id: 3,
       created_by: 2,
+      created_at: new Date('2029-01-22T16:28:32.615Z'),
+      updated_at: new Date('2029-01-22T16:28:32.615Z'),
     },
   ];
 }
 
-function makeExpectedBoard(board) {
-  return {
+function makeExpectedBoard(board, cards) {
+  let expectedBoard = {
     id: board.id,
     name: board.name,
     owner: board.owner,
-    created_at: board.created_at.toISOString(),
-    updated_at: board.updated_at.toISOString(),
+  };
+
+  if (board.created_at && board.updated_at) {
+    expectedBoard = {
+      ...expectedBoard,
+      created_at: board.created_at.toISOString(),
+      updated_at: board.updated_at.toISOString(),
+    };
+  }
+
+  if (cards) {
+    expectedBoard = {
+      ...expectedBoard,
+      cards,
+    };
+  }
+
+  return expectedBoard;
+}
+
+function makeExpectedCard(user, card) {
+  const expectedUser = {
+    user_id: user.id,
+    first_name: user.first_name,
+    last_name: user.last_name,
+  };
+
+  return {
+    card_id: card.id,
+    category: card.category,
+    headline: card.headline,
+    text: card.text,
+    created_at: card.created_at.toISOString(),
+    updated_at: card.updated_at.toISOString(),
+    user: expectedUser,
   };
 }
 
-function makeMaliciousBoard(user) {
+function makeMaliciousBoard(user, cards) {
   const userBoard = {
     id: 1,
     board_id: 911,
     user_id: user.id,
     owner: false,
   };
-  const maliciousBoard = {
+  let maliciousBoard;
+  let expectedBoard;
+
+  if (!cards) {
+    maliciousBoard = {
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+  }
+
+  maliciousBoard = {
+    ...maliciousBoard,
     id: 911,
     name: `Naughty naughty very naughty <script>alert("xss");</script> Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`,
     team_id: 1,
-    created_at: new Date(),
-    updated_at: new Date(),
   };
-  const expectedBoard = {
+  expectedBoard = {
     ...makeExpectedBoard(maliciousBoard),
     name: `Naughty naughty very naughty &lt;script&gt;alert("xss");&lt;/script&gt; Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`,
     owner: userBoard.owner,
   };
+
+  if (cards) {
+    expectedBoard = {
+      ...expectedBoard,
+      cards,
+    };
+  }
+
   return {
     userBoard,
     maliciousBoard,
     expectedBoard,
+  };
+}
+
+function makeMaliciousCard(user) {
+  const maliciousCard = {
+    id: 911,
+    category: 1,
+    board_id: 911,
+    headline: 'Naughty naughty very naughty <script>alert("xss");</script>',
+    text: `Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`,
+    created_at: new Date(),
+    updated_at: new Date(),
+    created_by: user.id,
+  };
+  const expectedCard = {
+    ...makeExpectedCard(user, maliciousCard),
+    headline:
+      'Naughty naughty very naughty &lt;script&gt;alert("xss");&lt;/script&gt;',
+    text: `Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`,
+  };
+  return {
+    maliciousCard,
+    expectedCard,
   };
 }
 
@@ -371,7 +462,9 @@ module.exports = {
   makeUserBoardsArray,
   makeCardsArray,
   makeExpectedBoard,
+  makeExpectedCard,
   makeMaliciousBoard,
+  makeMaliciousCard,
   makeBoardsFixtures,
   seedUsers,
   seedTeams,
