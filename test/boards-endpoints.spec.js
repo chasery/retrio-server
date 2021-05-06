@@ -68,6 +68,8 @@ describe('Boards Endpoints', function () {
             return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
           });
 
+        console.log(expectedBoards);
+
         return supertest(app)
           .get('/api/boards')
           .set('Authorization', helpers.makeAuthHeader(testUser))
@@ -131,6 +133,7 @@ describe('Boards Endpoints', function () {
           const expectedBoard = {
             id: testBoard.id,
             name: testBoard.name,
+            team_id: testBoard.team_id,
             owner: testUserBoard.owner,
             cards: expectedCards,
           };
@@ -187,18 +190,18 @@ describe('Boards Endpoints', function () {
       const requiredFields = ['name', 'team_id'];
 
       requiredFields.forEach((field) => {
-        const newBoardItem = {
+        const newBoard = {
           name: 'Beets Board',
           team_id: 1,
         };
 
         it(`responds with 400 and an error message when the '${field}' is missing`, () => {
-          delete newBoardItem[field];
+          delete newBoard[field];
 
           return supertest(app)
             .post('/api/boards')
             .set('Authorization', helpers.makeAuthHeader(testUser))
-            .send(newBoardItem)
+            .send(newBoard)
             .expect(400, {
               error: `Missing '${field}' in request body`,
             });
@@ -254,113 +257,155 @@ describe('Boards Endpoints', function () {
       });
     });
 
-    // describe('PATCH /api/racks/:rackId', () => {
-    //   context('Given no racks', () => {
-    //     beforeEach(() => helpers.seedUsers(db, testUsers));
+    describe('PATCH /api/boards/:boardId', () => {
+      context('Given no boards', () => {
+        beforeEach(() => helpers.seedUsers(db, testUsers));
 
-    //     it('responds with a 404', () => {
-    //       const rackId = 123456;
-    //       const updateToRack = {
-    //         rack_name: 'BEET IT',
-    //       };
+        it('responds with a 404', () => {
+          const boardId = 123456;
+          const updateToRack = {
+            name: 'BEET IT',
+            team_id: testTeam.id,
+          };
 
-    //       return supertest(app)
-    //         .patch(`/api/racks/${rackId}`)
-    //         .set('Authorization', helpers.makeAuthHeader(testUser))
-    //         .send(updateToRack)
-    //         .expect(404, { error: "Rack doesn't exist" });
-    //     });
-    //   });
+          return supertest(app)
+            .patch(`/api/boards/${boardId}`)
+            .set('Authorization', helpers.makeAuthHeader(testUser))
+            .send(updateToRack)
+            .expect(404, { error: "Board doesn't exist" });
+        });
+      });
 
-    //   context('Given there are racks', () => {
-    //     beforeEach('insert racks', () =>
-    //       helpers.seedRacksTables(db, testUsers, testBoards)
-    //     );
+      context('Given there are racks', () => {
+        beforeEach('insert racks', async () => {
+          await helpers.seedUsers(db, testUsers);
+          await helpers.seedTeams(db, testTeams, testTeamMembers);
+          await helpers.seedBoards(db, testBoards, testUserBoards, testCards);
+        });
 
-    //     it('responds with 204 and rack is updated', () => {
-    //       const rackId = 1;
-    //       const updateToRack = {
-    //         rack_name: 'BEET IT',
-    //       };
-    //       let expectedRack = helpers.makeExpectedRack(testBoards[rackId - 1]);
-    //       expectedRack = {
-    //         ...expectedRack,
-    //         ...updateToRack,
-    //       };
+        it('responds with 204 and board is updated', () => {
+          const boardId = 1;
+          const expectedCards = testCards
+            .filter((card) => card.board_id === testBoard.id)
+            .map((card) => {
+              const expectedUser = testUsers.find(
+                (user) => user.id === card.created_by
+              );
+              return helpers.makeExpectedCard(expectedUser, card);
+            });
+          let expectedBoard = {
+            id: testBoard.id,
+            name: testBoard.name,
+            owner: testUserBoard.owner,
+            cards: expectedCards,
+          };
+          const updatedBoard = {
+            name: 'BEET IT',
+            team_id: testTeams[1].id,
+          };
 
-    //       return supertest(app)
-    //         .patch(`/api/racks/${rackId}`)
-    //         .set('Authorization', helpers.makeAuthHeader(testUser))
-    //         .send(updateToRack)
-    //         .expect(204)
-    //         .then((res) =>
-    //           supertest(app)
-    //             .get(`/api/racks/${rackId}`)
-    //             .set('Authorization', helpers.makeAuthHeader(testUser))
-    //             .expect(expectedRack)
-    //         );
-    //     });
+          expectedBoard = {
+            ...expectedBoard,
+            name: updatedBoard.name,
+            team_id: updatedBoard.team_id,
+          };
 
-    //     it('responds with 204 and ignores bad key value pair', () => {
-    //       const rackId = 1;
-    //       const updateToRack = {
-    //         rack_name: 'BEET IT',
-    //       };
-    //       let expectedRack = helpers.makeExpectedRack(testBoards[rackId - 1]);
-    //       expectedRack = {
-    //         ...expectedRack,
-    //         ...updateToRack,
-    //       };
+          return supertest(app)
+            .patch(`/api/boards/${boardId}`)
+            .set('Authorization', helpers.makeAuthHeader(testUser))
+            .send(updatedBoard)
+            .expect(204)
+            .then((res) =>
+              supertest(app)
+                .get(`/api/boards/${boardId}`)
+                .set('Authorization', helpers.makeAuthHeader(testUser))
+                .expect(expectedBoard)
+            );
+        });
 
-    //       return supertest(app)
-    //         .patch(`/api/racks/${rackId}`)
-    //         .set('Authorization', helpers.makeAuthHeader(testUser))
-    //         .send({
-    //           ...updateToRack,
-    //           fieldToIgnore: 'this should not be in the GET response',
-    //         })
-    //         .expect(204)
-    //         .then((res) =>
-    //           supertest(app)
-    //             .get(`/api/racks/${rackId}`)
-    //             .set('Authorization', helpers.makeAuthHeader(testUser))
-    //             .expect(expectedRack)
-    //         );
-    //     });
+        it('responds with 204 and ignores bad key value pair', () => {
+          const boardId = 1;
+          const expectedCards = testCards
+            .filter((card) => card.board_id === testBoard.id)
+            .map((card) => {
+              const expectedUser = testUsers.find(
+                (user) => user.id === card.created_by
+              );
+              return helpers.makeExpectedCard(expectedUser, card);
+            });
+          let expectedBoard = {
+            id: testBoard.id,
+            name: testBoard.name,
+            team_id: testBoard.team_id,
+            owner: testUserBoard.owner,
+            cards: expectedCards,
+          };
+          const updatedBoard = {
+            name: 'BEET IT',
+            team_id: testTeams[1].id,
+          };
 
-    //     it('responds with 400 when no required fields supplied', () => {
-    //       const rackId = 1;
+          expectedBoard = {
+            ...expectedBoard,
+            name: updatedBoard.name,
+            team_id: updatedBoard.team_id,
+          };
 
-    //       return supertest(app)
-    //         .patch(`/api/racks/${rackId}`)
-    //         .set('Authorization', helpers.makeAuthHeader(testUser))
-    //         .send({ irrelevantField: 'foo' })
-    //         .expect(400, {
-    //           error: "Missing 'rack_name' in request body",
-    //         });
-    //     });
+          return supertest(app)
+            .patch(`/api/boards/${boardId}`)
+            .set('Authorization', helpers.makeAuthHeader(testUser))
+            .send({
+              ...updatedBoard,
+              fieldToIgnore: 'this should not be in the GET response',
+            })
+            .expect(204)
+            .then((res) =>
+              supertest(app)
+                .get(`/api/boards/${boardId}`)
+                .set('Authorization', helpers.makeAuthHeader(testUser))
+                .expect(expectedBoard)
+            );
+        });
 
-    //     it('responds with 401 when rack user_id !== auth user_id', () => {
-    //       const rackId = 3;
-    //       const updateToRack = {
-    //         rack_name: 'BEET IT',
-    //       };
-    //       let expectedRack = helpers.makeExpectedRack(testBoards[rackId - 1]);
-    //       expectedRack = {
-    //         ...expectedRack,
-    //         ...updateToRack,
-    //       };
+        const requiredFields = ['name', 'team_id'];
 
-    //       return supertest(app)
-    //         .patch(`/api/racks/${rackId}`)
-    //         .set('Authorization', helpers.makeAuthHeader(testUser))
-    //         .send(updateToRack)
-    //         .expect(401, {
-    //           error: `Unauthorized request`,
-    //         });
-    //     });
-    //   });
-    // });
+        requiredFields.forEach((field) => {
+          const boardId = 1;
+          const updatedBoard = {
+            name: 'Beets Board',
+            team_id: 1,
+          };
+
+          it(`responds with 400 and an error message when the '${field}' is missing`, () => {
+            delete updatedBoard[field];
+
+            return supertest(app)
+              .patch(`/api/boards/${boardId}`)
+              .set('Authorization', helpers.makeAuthHeader(testUser))
+              .send(updatedBoard)
+              .expect(400, {
+                error: `Missing '${field}' in request body`,
+              });
+          });
+        });
+
+        it(`responds with 401 when board owner's user_id !== auth user_id`, () => {
+          const boardId = 3;
+          const updatedBoard = {
+            name: 'BEET IT',
+            team_id: testTeams[1].id,
+          };
+
+          return supertest(app)
+            .patch(`/api/boards/${boardId}`)
+            .set('Authorization', helpers.makeAuthHeader(testUser))
+            .send(updatedBoard)
+            .expect(401, {
+              error: `Unauthorized request`,
+            });
+        });
+      });
+    });
 
     // describe('DELETE /api/racks/:rackId', () => {
     //   context('Given no racks', () => {

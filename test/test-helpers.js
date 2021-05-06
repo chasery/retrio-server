@@ -239,6 +239,7 @@ function makeExpectedBoard(board, cards) {
   let expectedBoard = {
     id: board.id,
     name: board.name,
+    team_id: board.team_id,
     owner: board.owner,
   };
 

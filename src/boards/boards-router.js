@@ -45,25 +45,30 @@ boardsRouter
   .all(validateBoardRequest)
   .get((req, res) => {
     res.json(BoardsService.serializeBoard(res.board));
+  })
+  .patch(jsonBodyParser, (req, res, next) => {
+    const { id } = req.user;
+    const { boardId } = req.params;
+    const { name, team_id } = req.body;
+    const updatedBoard = { name, team_id };
+
+    if (!res.board.owner)
+      return res.status(401).json({
+        error: 'Unauthorized request',
+      });
+
+    for (const [key, value] of Object.entries(updatedBoard))
+      if (value == null)
+        return res.status(400).json({
+          error: `Missing '${key}' in request body`,
+        });
+
+    BoardsService.updateBoard(req.app.get('db'), boardId, updatedBoard)
+      .then((numRowsAffected) => {
+        res.status(204).end();
+      })
+      .catch(next);
   });
-//   .patch(jsonBodyParser, (req, res, next) => {
-//     const { id } = req.user;
-//     const { rackId } = req.params;
-//     const { rack_name } = req.body;
-//     const updatedRack = { rack_name };
-
-//     for (const [key, value] of Object.entries(updatedRack))
-//       if (value == null)
-//         return res.status(400).json({
-//           error: `Missing '${key}' in request body`,
-//         });
-
-//     BoardsService.updateRack(req.app.get('db'), id, rackId, updatedRack)
-//       .then((numRowsAffected) => {
-//         res.status(204).end();
-//       })
-//       .catch(next);
-//   })
 //   .delete((req, res, next) => {
 //     const { id } = req.user;
 //     const { rackId } = req.params;

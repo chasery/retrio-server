@@ -9,6 +9,7 @@ const BoardsService = {
         'user_boards.owner',
         'boards.id',
         'boards.name',
+        'boards.team_id',
         'boards.created_at',
         'boards.updated_at'
       )
@@ -24,6 +25,7 @@ const BoardsService = {
         'user_boards.owner',
         'boards.id',
         'boards.name',
+        'boards.team_id',
         'cards.id as card_id',
         'cards.category',
         'cards.headline',
@@ -76,27 +78,23 @@ const BoardsService = {
   insertUserBoard(db, newUserBoard) {
     return db.insert(newUserBoard).into('user_boards').returning('*');
   },
-  updateBoard(db, userId, boardId, updatedBoard) {
+  updateBoard(db, boardId, updatedBoard) {
     return db
       .from('boards')
+      .where('boards.id', boardId)
       .select('*')
-      .where({ id: boardId, user_id: userId })
       .first()
       .update(updatedBoard);
   },
   deleteBoard(db, userId, boardId) {
-    return db
-      .from('boards')
-      .select('*')
-      .where({ id: boardId, user_id: userId })
-      .first()
-      .delete();
+    return db.from('boards').select('*').first().delete();
   },
   boardReducer(cards) {
     return cards.reduce((board, card) => {
       const {
         id,
         name,
+        team_id,
         owner,
         category,
         user_id,
@@ -109,6 +107,7 @@ const BoardsService = {
       } = card;
       board.id = id;
       board.name = name;
+      board.team_id = team_id;
       board.owner = owner;
 
       if (!board.cards) {
@@ -131,6 +130,7 @@ const BoardsService = {
     let serializedBoard = {
       id: board.id,
       name: xss(board.name),
+      team_id: board.team_id,
       owner: board.owner,
     };
 
