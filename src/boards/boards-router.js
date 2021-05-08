@@ -68,16 +68,21 @@ boardsRouter
         res.status(204).end();
       })
       .catch(next);
-  });
-//   .delete((req, res, next) => {
-//     const { id } = req.user;
-//     const { rackId } = req.params;
+  })
+  .delete((req, res, next) => {
+    const { id } = req.user;
+    const { rackId } = req.params;
 
-//     BoardsService.deleteRack(req.app.get('db'), id, rackId)
-//       .then(() => {
-//         res.status(204).end();
-//       })
-//       .catch(next);
-//   });
+    if (!res.board.owner)
+      return res.status(401).json({
+        error: 'Unauthorized request',
+      });
+
+    BoardsService.deleteBoard(req.app.get('db'), id, rackId)
+      .then(() => {
+        res.status(204).end();
+      })
+      .catch(next);
+  });
 
 module.exports = boardsRouter;

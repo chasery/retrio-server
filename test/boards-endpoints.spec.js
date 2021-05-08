@@ -68,8 +68,6 @@ describe('Boards Endpoints', function () {
             return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
           });
 
-        console.log(expectedBoards);
-
         return supertest(app)
           .get('/api/boards')
           .set('Authorization', helpers.makeAuthHeader(testUser))
@@ -263,7 +261,7 @@ describe('Boards Endpoints', function () {
 
         it('responds with a 404', () => {
           const boardId = 123456;
-          const updateToRack = {
+          const updateToBoard = {
             name: 'BEET IT',
             team_id: testTeam.id,
           };
@@ -271,13 +269,13 @@ describe('Boards Endpoints', function () {
           return supertest(app)
             .patch(`/api/boards/${boardId}`)
             .set('Authorization', helpers.makeAuthHeader(testUser))
-            .send(updateToRack)
+            .send(updateToBoard)
             .expect(404, { error: "Board doesn't exist" });
         });
       });
 
-      context('Given there are racks', () => {
-        beforeEach('insert racks', async () => {
+      context('Given there are boards', () => {
+        beforeEach('insert boards', async () => {
           await helpers.seedUsers(db, testUsers);
           await helpers.seedTeams(db, testTeams, testTeamMembers);
           await helpers.seedBoards(db, testBoards, testUserBoards, testCards);
@@ -407,49 +405,60 @@ describe('Boards Endpoints', function () {
       });
     });
 
-    // describe('DELETE /api/racks/:rackId', () => {
-    //   context('Given no racks', () => {
-    //     beforeEach(() => helpers.seedUsers(db, testUsers));
+    describe('DELETE /api/boards/:boardId', () => {
+      context('Given no boards', () => {
+        beforeEach(() => helpers.seedUsers(db, testUsers));
 
-    //     it('responds with 404', () => {
-    //       const rackId = 123456;
+        it('responds with 404', () => {
+          const boardId = 123456;
 
-    //       return supertest(app)
-    //         .delete(`/api/racks/${rackId}`)
-    //         .set('Authorization', helpers.makeAuthHeader(testUser))
-    //         .expect(404, { error: "Rack doesn't exist" });
-    //     });
-    //   });
+          return supertest(app)
+            .delete(`/api/boards/${boardId}`)
+            .set('Authorization', helpers.makeAuthHeader(testUser))
+            .expect(404, { error: "Board doesn't exist" });
+        });
+      });
 
-    //   context('Given there are racks', () => {
-    //     beforeEach('insert racks', () =>
-    //       helpers.seedRacksTables(db, testUsers, testBoards, testRackItems)
-    //     );
+      context('Given there are boards', () => {
+        beforeEach('insert boards', async () => {
+          await helpers.seedUsers(db, testUsers);
+          await helpers.seedTeams(db, testTeams, testTeamMembers);
+          await helpers.seedBoards(db, testBoards, testUserBoards, testCards);
+        });
 
-    //     it('responds with 204 and the rack is deleted in the db', () => {
-    //       const rackId = 1;
-    //       const expectedRackItems = testRackItems
-    //         .filter(
-    //           (item) => item.rack_id !== rackId && item.user_id === testUser.id
-    //         )
-    //         .map((item) => helpers.makeExpectedRackItem(item));
-    //       const expectedRacks = testBoards
-    //         .filter(
-    //           (rack) => rack.rack_id !== rackId && rack.user_id === testUser.id
-    //         )
-    //         .map((rack) => helpers.makeExpectedRack(rack, expectedRackItems));
+        it('responds with 204 and the board is deleted in the db', () => {
+          const boardId = 1;
+          const expectedBoards = testUserBoards
+            .filter(
+              (userBoard) =>
+                userBoard.user_id === testUser.id &&
+                userBoard.board_id !== boardId
+            )
+            .map((userBoard) => {
+              let board = testBoards.find(
+                (board) => board.id === userBoard.board_id
+              );
+              return helpers.makeExpectedBoard({
+                ...board,
+                owner: userBoard.owner,
+              });
+            })
+            .sort(function (a, b) {
+              return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+            });
 
-    //       return supertest(app)
-    //         .delete(`/api/racks/${rackId}`)
-    //         .set('Authorization', helpers.makeAuthHeader(testUser))
-    //         .expect(204)
-    //         .then((res) =>
-    //           supertest(app)
-    //             .get('/api/racks')
-    //             .set('Authorization', helpers.makeAuthHeader(testUser))
-    //             .expect(expectedRacks)
-    //         );
-    //     });
-    // });
+          return supertest(app)
+            .delete(`/api/boards/${boardId}`)
+            .set('Authorization', helpers.makeAuthHeader(testUser))
+            .expect(204)
+            .then((res) =>
+              supertest(app)
+                .get('/api/boards')
+                .set('Authorization', helpers.makeAuthHeader(testUser))
+                .expect(expectedBoards)
+            );
+        });
+      });
+    });
   });
 });
