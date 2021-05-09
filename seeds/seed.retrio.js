@@ -1,12 +1,14 @@
 exports.seed = async function (knex) {
   // Delete table data
   await knex('cards').del();
+  await knex('user_boards').del();
   await knex('boards').del();
   await knex('team_members').del();
   await knex('teams').del();
   await knex('users').del();
   // Reset users, teams, boards, and cards tables auto increment back to 1
   await knex.raw('ALTER SEQUENCE cards_id_seq RESTART WITH 1');
+  await knex.raw('ALTER SEQUENCE user_boards_id_seq RESTART WITH 1');
   await knex.raw('ALTER SEQUENCE boards_id_seq RESTART WITH 1');
   await knex.raw('ALTER SEQUENCE teams_id_seq RESTART WITH 1');
   await knex.raw('ALTER SEQUENCE users_id_seq RESTART WITH 1');
@@ -511,7 +513,7 @@ Jim`,
     {
       category: 1,
       headline: `I got chicken nuggets`,
-      text: `I was so hungry, guys. These chicken nuggets are so tasy. What's your favorite dip for them? I like ranch.`,
+      text: `I was so hungry, guys. These chicken nuggets are so tasty. What's your favorite dip for them? I like ranch.`,
       board_id: 3,
       created_by: 7,
     },

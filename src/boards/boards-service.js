@@ -93,28 +93,6 @@ const BoardsService = {
       .where('boards.id', boardId)
       .first()
       .delete();
-    // return db.transaction((trx) => {
-    //   return trx
-    //     .from('user_boards')
-    //     .select('*')
-    //     .where('board_id', boardId)
-    //     .delete()
-    //     .then((res) => {
-    //       return trx
-    //         .from('cards')
-    //         .select('*')
-    //         .where('board_id', boardId)
-    //         .delete();
-    //     })
-    //     .then((res) => {
-    //       return trx
-    //         .from('boards')
-    //         .select('*')
-    //         .where('id', boardId)
-    //         .first()
-    //         .delete();
-    //     });
-    // });
   },
   boardReducer(cards) {
     return cards.reduce((board, card) => {

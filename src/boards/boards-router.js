@@ -47,7 +47,6 @@ boardsRouter
     res.json(BoardsService.serializeBoard(res.board));
   })
   .patch(jsonBodyParser, (req, res, next) => {
-    const { id } = req.user;
     const { boardId } = req.params;
     const { name, team_id } = req.body;
     const updatedBoard = { name, team_id };
@@ -70,15 +69,14 @@ boardsRouter
       .catch(next);
   })
   .delete((req, res, next) => {
-    const { id } = req.user;
-    const { rackId } = req.params;
+    const { boardId } = req.params;
 
     if (!res.board.owner)
       return res.status(401).json({
         error: 'Unauthorized request',
       });
 
-    BoardsService.deleteBoard(req.app.get('db'), id, rackId)
+    BoardsService.deleteBoard(req.app.get('db'), boardId)
       .then(() => {
         res.status(204).end();
       })
