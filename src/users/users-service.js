@@ -43,14 +43,34 @@ const UsersService = {
     return bcrypt.hash(password, 12);
   },
   serializeUser(user) {
-    return {
-      id: user.id,
+    let serializedUser = {
       email: xss(user.email),
       first_name: xss(user.first_name),
       last_name: xss(user.last_name),
-      created_at: new Date(user.created_at),
-      updated_at: new Date(user.updated_at),
     };
+
+    if (user.user_id) {
+      serializedUser = {
+        ...serializedUser,
+        user_id: user.user_id,
+        owner: user.owner,
+      };
+    } else {
+      serializedUser = {
+        ...serializedUser,
+        id: user.id,
+      };
+    }
+
+    if (user.created_at && user.updated_at) {
+      serializedUser = {
+        ...serializedUser,
+        created_at: new Date(user.created_at),
+        updated_at: new Date(user.updated_at),
+      };
+    }
+
+    return serializedUser;
   },
 };
 

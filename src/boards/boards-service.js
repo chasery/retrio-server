@@ -47,12 +47,11 @@ const BoardsService = {
         return reducedBoard;
       });
   },
-  getUserBoardById(db, boardId) {
+  getUsersByBoardId(db, boardId) {
     return db
       .from('user_boards')
       .where('board_id', boardId)
-      .select('board_id', 'user_id')
-      .then(([userBoard]) => userBoard);
+      .select('board_id', 'user_id');
   },
   insertBoard(db, newBoard, user) {
     return db.transaction((trx) => {

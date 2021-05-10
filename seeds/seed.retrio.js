@@ -10,6 +10,7 @@ exports.seed = async function (knex) {
   await knex.raw('ALTER SEQUENCE cards_id_seq RESTART WITH 1');
   await knex.raw('ALTER SEQUENCE user_boards_id_seq RESTART WITH 1');
   await knex.raw('ALTER SEQUENCE boards_id_seq RESTART WITH 1');
+  await knex.raw('ALTER SEQUENCE team_members_id_seq RESTART WITH 1');
   await knex.raw('ALTER SEQUENCE teams_id_seq RESTART WITH 1');
   await knex.raw('ALTER SEQUENCE users_id_seq RESTART WITH 1');
 

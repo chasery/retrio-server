@@ -235,6 +235,33 @@ Jim`,
   ];
 }
 
+function makeExpectedTeam(team, members) {
+  let expectedTeam = {
+    id: team.id,
+    name: team.name,
+    owner: team.owner,
+  };
+
+  if (members) {
+    expectedTeam = {
+      ...expectedTeam,
+      members,
+    };
+  }
+
+  return expectedTeam;
+}
+
+function makeExpectedTeamMember(user, owner) {
+  return {
+    user_id: user.id,
+    email: user.email,
+    first_name: user.first_name,
+    last_name: user.last_name,
+    owner,
+  };
+}
+
 function makeExpectedBoard(board, cards) {
   let expectedBoard = {
     id: board.id,
@@ -277,6 +304,44 @@ function makeExpectedCard(user, card) {
     created_at: card.created_at.toISOString(),
     updated_at: card.updated_at.toISOString(),
     user: expectedUser,
+  };
+}
+
+function makeMaliciousTeam(user, members) {
+  const teamMember = {
+    id: 1,
+    team_id: 911,
+    user_id: user.id,
+    owner: true,
+  };
+  let maliciousTeam;
+  let expectedTeam;
+
+  maliciousTeam = {
+    id: 911,
+    name: `Naughty naughty very naughty <script>alert("xss");</script> Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`,
+  };
+  expectedTeam = {
+    ...makeExpectedTeam(maliciousTeam),
+    name: `Naughty naughty very naughty &lt;script&gt;alert("xss");&lt;/script&gt; Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`,
+  };
+
+  if (members) {
+    expectedTeam = {
+      ...expectedTeam,
+      members,
+    };
+  } else {
+    expectedTeam = {
+      ...expectedTeam,
+      owner: teamMember.owner,
+    };
+  }
+
+  return {
+    teamMember,
+    maliciousTeam,
+    expectedTeam,
   };
 }
 
@@ -389,7 +454,7 @@ function seedTeams(db, teams, teamMembers) {
     ]);
     await trx.into('team_members').insert(teamMembers);
     // update the auto sequence to match the forced id values
-    await trx.raw(`SELECT setval('user_boards_id_seq', ?)`, [
+    await trx.raw(`SELECT setval('team_members_id_seq', ?)`, [
       teamMembers[teamMembers.length - 1].id,
     ]);
   });
@@ -436,11 +501,13 @@ function cleanTable(db) {
           trx.raw(`ALTER SEQUENCE cards_id_seq minvalue 0 START WITH 1`),
           trx.raw(`ALTER SEQUENCE user_boards_id_seq minvalue 0 START WITH 1`),
           trx.raw(`ALTER SEQUENCE boards_id_seq minvalue 0 START WITH 1`),
+          trx.raw(`ALTER SEQUENCE team_members_id_seq minvalue 0 START WITH 1`),
           trx.raw(`ALTER SEQUENCE teams_id_seq minvalue 0 START WITH 1`),
           trx.raw(`ALTER SEQUENCE users_id_seq minvalue 0 START WITH 1`),
           trx.raw(`SELECT setval('cards_id_seq', 0)`),
           trx.raw(`SELECT setval('user_boards_id_seq', 0)`),
           trx.raw(`SELECT setval('boards_id_seq', 0)`),
+          trx.raw(`SELECT setval('team_members_id_seq', 0)`),
           trx.raw(`SELECT setval('teams_id_seq', 0)`),
           trx.raw(`SELECT setval('users_id_seq', 0)`),
         ])
@@ -463,8 +530,11 @@ module.exports = {
   makeBoardsArray,
   makeUserBoardsArray,
   makeCardsArray,
+  makeExpectedTeam,
+  makeExpectedTeamMember,
   makeExpectedBoard,
   makeExpectedCard,
+  makeMaliciousTeam,
   makeMaliciousBoard,
   makeMaliciousCard,
   makeBoardsFixtures,
