@@ -163,82 +163,75 @@ describe('Teams Endpoints', function () {
     });
   });
 
-  // describe(`POST /api/boards`, () => {
-  //   beforeEach('insert boards', async () => {
-  //     await helpers.seedUsers(db, testUsers);
-  //     await helpers.seedTeams(db, testTeams, testTeamMembers);
-  //     await helpers.seedBoards(db, testBoards, testUserBoards, testCards);
-  //   });
+  describe(`POST /api/teams`, () => {
+    beforeEach('insert users', async () => {
+      await helpers.seedUsers(db, testUsers);
+    });
 
-  //   const requiredFields = ['name', 'team_id'];
+    const requiredFields = ['name'];
 
-  //   requiredFields.forEach((field) => {
-  //     const newBoard = {
-  //       name: 'Beets Board',
-  //       team_id: 1,
-  //     };
+    requiredFields.forEach((field) => {
+      const newTeam = {
+        name: 'The Beets',
+      };
 
-  //     it(`responds with 400 and an error message when the '${field}' is missing`, () => {
-  //       delete newBoard[field];
+      it(`responds with 400 and an error message when the '${field}' is missing`, () => {
+        delete newTeam[field];
 
-  //       return supertest(app)
-  //         .post('/api/boards')
-  //         .set('Authorization', helpers.makeAuthHeader(testUser))
-  //         .send(newBoard)
-  //         .expect(400, {
-  //           error: `Missing '${field}' in request body`,
-  //         });
-  //     });
-  //   });
+        return supertest(app)
+          .post('/api/teams')
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .send(newTeam)
+          .expect(400, {
+            error: `Missing '${field}' in request body`,
+          });
+      });
+    });
 
-  //   it(`responds with 201 and the new board`, function () {
-  //     this.retries(3);
-  //     const newBoard = {
-  //       name: 'New Test Board',
-  //       team_id: testTeam.id,
-  //     };
+    it(`responds with 201 and the new team`, function () {
+      this.retries(3);
+      const newTeam = {
+        name: 'The Beets',
+      };
 
-  //     return supertest(app)
-  //       .post('/api/boards')
-  //       .set('Authorization', helpers.makeAuthHeader(testUser))
-  //       .send(newBoard)
-  //       .expect(201)
-  //       .expect((res) => {
-  //         expect(res.body).to.have.property('id');
-  //         expect(res.body.name).to.eql(newBoard.name);
-  //         expect(res.body.owner).to.eql(true);
-  //         expect(res.body.cards).to.eql([]);
-  //         expect(res.headers.location).to.eql(`/api/boards/${res.body.id}`);
-  //       })
-  //       .expect((res) =>
-  //         db
-  //           .from('user_boards')
-  //           .select(
-  //             'user_boards.owner',
-  //             'user_boards.user_id',
-  //             'boards.id',
-  //             'boards.name',
-  //             'boards.team_id',
-  //             'boards.created_at',
-  //             'boards.updated_at'
-  //           )
-  //           .leftJoin('boards', 'user_boards.board_id', 'boards.id')
-  //           .where('boards.id', res.body.id)
-  //           .first()
-  //           .then((row) => {
-  //             expect(row.name).to.eql(newBoard.name);
-  //             expect(row.team_id).to.eql(newBoard.team_id);
-  //             expect(row.user_id).to.eql(testUser.id);
-  //             expect(row.owner).to.eql(true);
-  //             const expectedDate = new Date().toLocaleString();
-  //             const createdDate = new Date(row.created_at).toLocaleString();
-  //             const updatedDate = new Date(row.updated_at).toLocaleString();
-  //             expect(createdDate).to.eql(expectedDate);
-  //             expect(updatedDate).to.eql(expectedDate);
-  //           })
-  //       );
-  //   });
-  // });
+      return supertest(app)
+        .post('/api/teams')
+        .set('Authorization', helpers.makeAuthHeader(testUser))
+        .send(newTeam)
+        .expect(201)
+        .expect((res) => {
+          expect(res.body).to.have.property('id');
+          expect(res.body.name).to.eql(newTeam.name);
+          expect(res.body.members[0].owner).to.eql(true);
+          expect(res.headers.location).to.eql(`/api/teams/${res.body.id}`);
+        })
+        .expect((res) =>
+          db
+            .from('team_members')
+            .select(
+              'team_members.owner',
+              'team_members.user_id',
+              'teams.id',
+              'teams.name',
+              'teams.created_at',
+              'teams.updated_at'
+            )
+            .leftJoin('teams', 'team_members.board_id', 'teams.id')
+            .where('team_members.team_id', res.body.id)
+            .first()
+            .then((row) => {
+              expect(row.name).to.eql(newTeam.name);
+              expect(row.user_id).to.eql(testUser.id);
+              expect(row.owner).to.eql(true);
+              const expectedDate = new Date().toLocaleString();
+              const createdDate = new Date(row.created_at).toLocaleString();
+              const updatedDate = new Date(row.updated_at).toLocaleString();
+              expect(createdDate).to.eql(expectedDate);
+              expect(updatedDate).to.eql(expectedDate);
+            })
+        );
+    });
+  });
 
   // describe('PATCH /api/boards/:boardId', () => {
   //   context('Given no boards', () => {

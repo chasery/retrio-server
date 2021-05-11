@@ -18,26 +18,26 @@ teamsRouter
         res.json(teams.map((team) => TeamsService.serializeTeam(team)));
       })
       .catch(next);
+  })
+  .post(jsonBodyParser, (req, res, next) => {
+    const { name } = req.body;
+    const newTeam = { name };
+
+    for (const [key, value] of Object.entries(newTeam))
+      if (value == null)
+        return res.status(400).json({
+          error: `Missing '${key}' in request body`,
+        });
+
+    TeamsService.insertTeam(req.app.get('db'), newTeam, req.user.id)
+      .then((team) => {
+        res
+          .status(201)
+          .location(path.posix.join(req.originalUrl, `/${team.id}`))
+          .json(TeamsService.serializeTeam(team));
+      })
+      .catch(next);
   });
-// .post(jsonBodyParser, (req, res, next) => {
-//   const { name, team_id } = req.body;
-//   const newBoard = { name, team_id };
-
-//   for (const [key, value] of Object.entries(newBoard))
-//     if (value == null)
-//       return res.status(400).json({
-//         error: `Missing '${key}' in request body`,
-//       });
-
-//   TeamsService.insertBoard(req.app.get('db'), newBoard, req.user.id)
-//     .then((board) => {
-//       res
-//         .status(201)
-//         .location(path.posix.join(req.originalUrl, `/${board.id}`))
-//         .json(TeamsService.serializeBoard(board));
-//     })
-//     .catch(next);
-// });
 
 teamsRouter
   .route('/:teamId')

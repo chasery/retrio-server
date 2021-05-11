@@ -41,30 +41,30 @@ const TeamsService = {
       .where('team_id', teamId)
       .select('team_id', 'user_id');
   },
-  // insertBoard(db, newBoard, user) {
-  //   return db.transaction((trx) => {
-  //     return trx
-  //       .insert(newBoard)
-  //       .into('boards')
-  //       .returning('*')
-  //       .then(([board]) => {
-  //         const { id } = board;
-  //         const newUserBoard = {
-  //           board_id: id,
-  //           user_id: user,
-  //           owner: true,
-  //         };
-  //         return this.insertUserBoard(trx, newUserBoard);
-  //       })
-  //       .then(([userBoard]) => {
-  //         const { board_id, user_id } = userBoard;
-  //         return this.getBoardById(trx, user_id, board_id);
-  //       });
-  //   });
-  // },
-  // insertUserBoard(db, newUserBoard) {
-  //   return db.insert(newUserBoard).into('user_boards').returning('*');
-  // },
+  insertTeam(db, newTeam, user) {
+    return db.transaction((trx) => {
+      return trx
+        .insert(newTeam)
+        .into('teams')
+        .returning('*')
+        .then(([team]) => {
+          const { id } = team;
+          const newTeamMember = {
+            team_id: id,
+            user_id: user,
+            owner: true,
+          };
+          return this.insertTeamMember(trx, newTeamMember);
+        })
+        .then(([teamMember]) => {
+          const { team_id } = teamMember;
+          return this.getTeamById(trx, team_id);
+        });
+    });
+  },
+  insertTeamMember(db, newTeamMember) {
+    return db.insert(newTeamMember).into('team_members').returning('*');
+  },
   // updateBoard(db, boardId, updatedBoard) {
   //   return db
   //     .from('boards')
