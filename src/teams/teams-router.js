@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const TeamsService = require('./teams-service');
+const UsersService = require('../users/users-service');
 const { requireAuth } = require('../middleware/jwt-auth');
 const { validateTeamRequest } = require('../middleware/validate-request');
 
@@ -51,11 +52,11 @@ teamsRouter
     const { name } = req.body;
     const updatedTeam = { name };
 
-    const teamMember = res.team.members.find(
+    const requestor = res.team.members.find(
       (member) => member.user_id === req.user.id
     );
 
-    if (!teamMember.owner)
+    if (!requestor.owner)
       return res.status(401).json({
         error: 'Unauthorized request',
       });
@@ -75,16 +76,86 @@ teamsRouter
   .delete((req, res, next) => {
     const { teamId } = req.params;
 
-    const teamMember = res.team.members.find(
+    const requestor = res.team.members.find(
       (member) => member.user_id === req.user.id
     );
 
-    if (!teamMember.owner)
+    if (!requestor.owner)
       return res.status(401).json({
         error: 'Unauthorized request',
       });
 
     TeamsService.deleteTeam(req.app.get('db'), teamId)
+      .then(() => {
+        res.status(204).end();
+      })
+      .catch(next);
+  });
+
+teamsRouter
+  .route('/:teamId/members')
+  .all(requireAuth)
+  .all(validateTeamRequest)
+  .post(jsonBodyParser, (req, res, next) => {
+    const { teamId } = req.params;
+    const { email } = req.body;
+    const newTeamMemberReq = { email };
+
+    for (const [key, value] of Object.entries(newTeamMemberReq))
+      if (value == null)
+        return res.status(400).json({
+          error: `Missing '${key}' in request body`,
+        });
+
+    UsersService.getUserByEmail(req.app.get('db'), newTeamMemberReq.email)
+      .then((user) => {
+        if (!user)
+          return res.status(400).json({
+            error: `Invalid Retrio user`,
+          });
+
+        const newTeamMember = {
+          user_id: user.id,
+          team_id: teamId,
+          owner: false,
+        };
+
+        TeamsService.insertTeamMember(
+          req.app.get('db'),
+          newTeamMember,
+          req.user.id
+        )
+          .then(([teamMember]) => {
+            console.log(teamMember);
+            res
+              .status(201)
+              .location(
+                path.posix.join(req.originalUrl, `/${teamMember.user_id}`)
+              )
+              .json(teamMember);
+          })
+          .catch(next);
+      })
+      .catch(next);
+  });
+
+teamsRouter
+  .route('/:teamId/members/:memberId')
+  .all(requireAuth)
+  .all(validateTeamRequest)
+  .delete((req, res, next) => {
+    const { teamId, memberId } = req.params;
+
+    const requestor = res.team.members.find(
+      (member) => member.user_id === req.user.id
+    );
+
+    if (!requestor.owner)
+      return res.status(401).json({
+        error: 'Unauthorized request',
+      });
+
+    TeamsService.deleteTeamMember(req.app.get('db'), teamId, memberId)
       .then(() => {
         res.status(204).end();
       })

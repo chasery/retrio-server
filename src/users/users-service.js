@@ -11,6 +11,13 @@ const UsersService = {
       .first()
       .then((user) => !!user);
   },
+  getUserByEmail(db, email) {
+    return db('users')
+      .where({ email })
+      .first()
+      .returning('*')
+      .then((user) => user);
+  },
   insertUser(db, newUser) {
     return db
       .insert(newUser)

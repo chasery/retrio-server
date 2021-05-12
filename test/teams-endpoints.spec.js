@@ -431,4 +431,67 @@ describe('Teams Endpoints', function () {
       });
     });
   });
+
+  describe(`POST /api/teams/:teamId/members`, () => {
+    beforeEach('insert users', async () => {
+      await helpers.seedUsers(db, testUsers);
+      await helpers.seedTeams(db, testTeams, testTeamMembers);
+    });
+
+    const requiredFields = ['email'];
+
+    requiredFields.forEach((field) => {
+      const teamId = testTeam.id;
+      const newTeamMember = {
+        email: testUsers[2].email,
+      };
+
+      it(`responds with 400 and an error message when the '${field}' is missing`, () => {
+        delete newTeamMember[field];
+
+        return supertest(app)
+          .post(`/api/teams/${teamId}/members`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .send(newTeamMember)
+          .expect(400, {
+            error: `Missing '${field}' in request body`,
+          });
+      });
+    });
+
+    it(`responds with 400 when not a valid user`, () => {
+      const teamId = testTeam.id;
+      const newTeamMember = {
+        email: 'beet@it.com',
+      };
+
+      return supertest(app)
+        .post(`/api/teams/${teamId}/members`)
+        .set('Authorization', helpers.makeAuthHeader(testUser))
+        .send(newTeamMember)
+        .expect(400, {
+          error: `Invalid Retrio user`,
+        });
+    });
+
+    it(`responds with 201 and the new team`, function () {
+      const teamId = testTeam.id;
+      const newTeamMember = testUsers[2];
+
+      return supertest(app)
+        .post(`/api/teams/${teamId}/members`)
+        .set('Authorization', helpers.makeAuthHeader(testUser))
+        .send({ email: newTeamMember.email })
+        .expect(201)
+        .expect((res) => {
+          expect(res.body).to.have.property('id');
+          expect(res.body.user_id).to.eql(newTeamMember.id);
+          expect(res.body.team_id).to.eql(teamId);
+          expect(res.body.owner).to.eql(false);
+          expect(res.headers.location).to.eql(
+            `/api/teams/${res.body.team_id}/members/${newTeamMember.id}`
+          );
+        });
+    });
+  });
 });
