@@ -53,6 +53,9 @@ const BoardsService = {
       .where('board_id', boardId)
       .select('board_id', 'user_id');
   },
+  getTeamBoards(db, teamId) {
+    return db.from('boards').where('team_id', teamId).select('board_id');
+  },
   insertBoard(db, newBoard, user) {
     return db.transaction((trx) => {
       return trx

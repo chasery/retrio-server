@@ -107,6 +107,12 @@ teamsRouter
           error: `Missing '${key}' in request body`,
         });
 
+    const exists = res.team.members.find((member) => member.email === email);
+    if (exists)
+      return res.status(400).json({
+        error: `Team member already exists`,
+      });
+
     UsersService.getUserByEmail(req.app.get('db'), newTeamMemberReq.email)
       .then((user) => {
         if (!user)
@@ -126,7 +132,6 @@ teamsRouter
           req.user.id
         )
           .then(([teamMember]) => {
-            console.log(teamMember);
             res
               .status(201)
               .location(
@@ -153,6 +158,15 @@ teamsRouter
     if (!requestor.owner)
       return res.status(401).json({
         error: 'Unauthorized request',
+      });
+
+    const memberToDelete = res.team.members.find(
+      (member) => member.user_id === parseFloat(memberId)
+    );
+
+    if (!memberToDelete)
+      return res.status(404).json({
+        error: `Team member doesn't exist`,
       });
 
     TeamsService.deleteTeamMember(req.app.get('db'), teamId, memberId)

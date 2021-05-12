@@ -433,7 +433,7 @@ describe('Teams Endpoints', function () {
   });
 
   describe(`POST /api/teams/:teamId/members`, () => {
-    beforeEach('insert users', async () => {
+    beforeEach('insert teams', async () => {
       await helpers.seedUsers(db, testUsers);
       await helpers.seedTeams(db, testTeams, testTeamMembers);
     });
@@ -474,6 +474,19 @@ describe('Teams Endpoints', function () {
         });
     });
 
+    it(`responds with 400 when user is already a member`, () => {
+      const teamId = testTeam.id;
+      const newTeamMember = testUsers[1];
+
+      return supertest(app)
+        .post(`/api/teams/${teamId}/members`)
+        .set('Authorization', helpers.makeAuthHeader(testUser))
+        .send({ email: newTeamMember.email })
+        .expect(400, {
+          error: `Team member already exists`,
+        });
+    });
+
     it(`responds with 201 and the new team`, function () {
       const teamId = testTeam.id;
       const newTeamMember = testUsers[2];
@@ -492,6 +505,70 @@ describe('Teams Endpoints', function () {
             `/api/teams/${res.body.team_id}/members/${newTeamMember.id}`
           );
         });
+    });
+  });
+
+  describe('DELETE /api/teams/:teamId/members', () => {
+    context('Given no teams', () => {
+      beforeEach(() => helpers.seedUsers(db, testUsers));
+
+      it('responds with 404', () => {
+        const teamId = 123456;
+
+        return supertest(app)
+          .delete(`/api/teams/${teamId}/members/${testUser.id}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(404, { error: "Team doesn't exist" });
+      });
+    });
+
+    context('Given there are teams', () => {
+      beforeEach('insert teams', async () => {
+        await helpers.seedUsers(db, testUsers);
+        await helpers.seedTeams(db, testTeams, testTeamMembers);
+      });
+
+      it(`responds with 404 when team member doesn't exist`, () => {
+        const teamId = testTeam.id;
+        const teamMemberId = 123456;
+
+        return supertest(app)
+          .delete(`/api/teams/${teamId}/members/${teamMemberId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(404, { error: "Team member doesn't exist" });
+      });
+
+      it('responds with 204 and the team is deleted in the db', () => {
+        const teamId = testTeam.id;
+        const teamMemberToDelete = testUsers[1].id;
+        const expectedTeamMembers = testTeamMembers
+          .filter(
+            (member) =>
+              member.team_id === teamId && member.user_id !== teamMemberToDelete
+          )
+          .map((member) => {
+            const expectedUser = testUsers.find(
+              (user) => user.id === member.user_id
+            );
+            return helpers.makeExpectedTeamMember(expectedUser, member.owner);
+          });
+        const expectedTeam = {
+          id: testTeam.id,
+          name: testTeam.name,
+          members: expectedTeamMembers,
+        };
+
+        return supertest(app)
+          .delete(`/api/teams/${teamId}/members/${teamMemberToDelete}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(204)
+          .then((res) =>
+            supertest(app)
+              .get(`/api/teams/${teamId}`)
+              .set('Authorization', helpers.makeAuthHeader(testUser))
+              .expect(expectedTeam)
+          );
+      });
     });
   });
 });

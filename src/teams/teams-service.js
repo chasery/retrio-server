@@ -1,4 +1,5 @@
 const xss = require('xss');
+const { insertUserBoard } = require('../boards/boards-service');
 const { serializeUser } = require('../users/users-service');
 
 const TeamsService = {
@@ -78,6 +79,14 @@ const TeamsService = {
       .from('teams')
       .select('*')
       .where('teams.id', teamId)
+      .first()
+      .delete();
+  },
+  deleteTeamMember(db, teamId, userId) {
+    return db
+      .from('team_members')
+      .select('*')
+      .where({ 'team_members.team_id': teamId, 'team_members.user_id': userId })
       .first()
       .delete();
   },
