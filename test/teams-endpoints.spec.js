@@ -9,6 +9,9 @@ describe('Teams Endpoints', function () {
     testUsers,
     testTeams,
     testTeamMembers,
+    testUserBoards,
+    testBoards,
+    testCards,
   } = helpers.makeBoardsFixtures();
   const testUser = testUsers[0];
   const testTeam = testTeams[0];
@@ -393,6 +396,7 @@ describe('Teams Endpoints', function () {
       beforeEach('insert teams', async () => {
         await helpers.seedUsers(db, testUsers);
         await helpers.seedTeams(db, testTeams, testTeamMembers);
+        await helpers.seedBoards(db, testBoards, testUserBoards, testCards);
       });
 
       it('responds with 204 and the team is deleted in the db', () => {
