@@ -45,29 +45,33 @@ teamsRouter
   .all(validateTeamRequest)
   .get((req, res) => {
     res.json(TeamsService.serializeTeam(res.team));
+  })
+  .patch(jsonBodyParser, (req, res, next) => {
+    const { teamId } = req.params;
+    const { name } = req.body;
+    const updatedTeam = { name };
+
+    const teamMember = res.team.members.find(
+      (member) => member.user_id === req.user.id
+    );
+
+    if (!teamMember.owner)
+      return res.status(401).json({
+        error: 'Unauthorized request',
+      });
+
+    for (const [key, value] of Object.entries(updatedTeam))
+      if (value == null)
+        return res.status(400).json({
+          error: `Missing '${key}' in request body`,
+        });
+
+    TeamsService.updateTeam(req.app.get('db'), teamId, updatedTeam)
+      .then((numRowsAffected) => {
+        res.status(204).end();
+      })
+      .catch(next);
   });
-//   .patch(jsonBodyParser, (req, res, next) => {
-//     const { boardId } = req.params;
-//     const { name, team_id } = req.body;
-//     const updatedBoard = { name, team_id };
-
-//     if (!res.board.owner)
-//       return res.status(401).json({
-//         error: 'Unauthorized request',
-//       });
-
-//     for (const [key, value] of Object.entries(updatedBoard))
-//       if (value == null)
-//         return res.status(400).json({
-//           error: `Missing '${key}' in request body`,
-//         });
-
-//     TeamsService.updateBoard(req.app.get('db'), boardId, updatedBoard)
-//       .then((numRowsAffected) => {
-//         res.status(204).end();
-//       })
-//       .catch(next);
-//   })
 //   .delete((req, res, next) => {
 //     const { boardId } = req.params;
 

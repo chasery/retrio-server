@@ -65,14 +65,14 @@ const TeamsService = {
   insertTeamMember(db, newTeamMember) {
     return db.insert(newTeamMember).into('team_members').returning('*');
   },
-  // updateBoard(db, boardId, updatedBoard) {
-  //   return db
-  //     .from('boards')
-  //     .where('boards.id', boardId)
-  //     .select('*')
-  //     .first()
-  //     .update(updatedBoard);
-  // },
+  updateTeam(db, teamId, updatedTeam) {
+    return db
+      .from('teams')
+      .where('teams.id', teamId)
+      .select('*')
+      .first()
+      .update(updatedTeam);
+  },
   // deleteBoard(db, boardId) {
   //   return db
   //     .from('boards')

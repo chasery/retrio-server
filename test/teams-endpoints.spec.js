@@ -233,155 +233,144 @@ describe('Teams Endpoints', function () {
     });
   });
 
-  // describe('PATCH /api/boards/:boardId', () => {
-  //   context('Given no boards', () => {
-  //     beforeEach(() => helpers.seedUsers(db, testUsers));
+  describe('PATCH /api/teams/:teamId', () => {
+    context('Given no teams', () => {
+      beforeEach(() => helpers.seedUsers(db, testUsers));
 
-  //     it('responds with a 404', () => {
-  //       const boardId = 123456;
-  //       const updateToBoard = {
-  //         name: 'BEET IT',
-  //         team_id: testTeam.id,
-  //       };
+      it('responds with a 404', () => {
+        const teamId = 123456;
+        const updateToTeam = {
+          name: 'The Beets',
+        };
 
-  //       return supertest(app)
-  //         .patch(`/api/boards/${boardId}`)
-  //         .set('Authorization', helpers.makeAuthHeader(testUser))
-  //         .send(updateToBoard)
-  //         .expect(404, { error: "Board doesn't exist" });
-  //     });
-  //   });
+        return supertest(app)
+          .patch(`/api/teams/${teamId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .send(updateToTeam)
+          .expect(404, { error: "Team doesn't exist" });
+      });
+    });
 
-  //   context('Given there are boards', () => {
-  //     beforeEach('insert boards', async () => {
-  //       await helpers.seedUsers(db, testUsers);
-  //       await helpers.seedTeams(db, testTeams, testTeamMembers);
-  //       await helpers.seedBoards(db, testBoards, testUserBoards, testCards);
-  //     });
+    context('Given there are teams', () => {
+      beforeEach('insert teams', async () => {
+        await helpers.seedUsers(db, testUsers);
+        await helpers.seedTeams(db, testTeams, testTeamMembers);
+      });
 
-  //     it('responds with 204 and board is updated', () => {
-  //       const boardId = 1;
-  //       const expectedCards = testCards
-  //         .filter((card) => card.board_id === testBoard.id)
-  //         .map((card) => {
-  //           const expectedUser = testUsers.find(
-  //             (user) => user.id === card.created_by
-  //           );
-  //           return helpers.makeExpectedCard(expectedUser, card);
-  //         });
-  //       let expectedBoard = {
-  //         id: testBoard.id,
-  //         name: testBoard.name,
-  //         owner: testUserBoard.owner,
-  //         cards: expectedCards,
-  //       };
-  //       const updatedBoard = {
-  //         name: 'BEET IT',
-  //         team_id: testTeams[1].id,
-  //       };
+      it('responds with 204 and team is updated', () => {
+        const teamId = testTeam.id;
+        const expectedTeamMembers = testTeamMembers
+          .filter((member) => member.team_id === testTeam.id)
+          .map((member) => {
+            const expectedUser = testUsers.find(
+              (user) => user.id === member.user_id
+            );
+            return helpers.makeExpectedTeamMember(expectedUser, member.owner);
+          });
+        let expectedTeam = {
+          id: testTeam.id,
+          name: testTeam.name,
+          members: expectedTeamMembers,
+        };
+        const updatedTeam = {
+          name: 'The Beets',
+        };
 
-  //       expectedBoard = {
-  //         ...expectedBoard,
-  //         name: updatedBoard.name,
-  //         team_id: updatedBoard.team_id,
-  //       };
+        expectedTeam = {
+          ...expectedTeam,
+          name: updatedTeam.name,
+        };
 
-  //       return supertest(app)
-  //         .patch(`/api/boards/${boardId}`)
-  //         .set('Authorization', helpers.makeAuthHeader(testUser))
-  //         .send(updatedBoard)
-  //         .expect(204)
-  //         .then((res) =>
-  //           supertest(app)
-  //             .get(`/api/boards/${boardId}`)
-  //             .set('Authorization', helpers.makeAuthHeader(testUser))
-  //             .expect(expectedBoard)
-  //         );
-  //     });
+        return supertest(app)
+          .patch(`/api/teams/${teamId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .send(updatedTeam)
+          .expect(204)
+          .then((res) =>
+            supertest(app)
+              .get(`/api/teams/${teamId}`)
+              .set('Authorization', helpers.makeAuthHeader(testUser))
+              .expect(expectedTeam)
+          );
+      });
 
-  //     it('responds with 204 and ignores bad key value pair', () => {
-  //       const boardId = 1;
-  //       const expectedCards = testCards
-  //         .filter((card) => card.board_id === testBoard.id)
-  //         .map((card) => {
-  //           const expectedUser = testUsers.find(
-  //             (user) => user.id === card.created_by
-  //           );
-  //           return helpers.makeExpectedCard(expectedUser, card);
-  //         });
-  //       let expectedBoard = {
-  //         id: testBoard.id,
-  //         name: testBoard.name,
-  //         team_id: testBoard.team_id,
-  //         owner: testUserBoard.owner,
-  //         cards: expectedCards,
-  //       };
-  //       const updatedBoard = {
-  //         name: 'BEET IT',
-  //         team_id: testTeams[1].id,
-  //       };
+      it('responds with 204 and ignores bad key value pair', () => {
+        const teamId = testTeam.id;
+        const expectedTeamMembers = testTeamMembers
+          .filter((member) => member.team_id === testTeam.id)
+          .map((member) => {
+            const expectedUser = testUsers.find(
+              (user) => user.id === member.user_id
+            );
+            return helpers.makeExpectedTeamMember(expectedUser, member.owner);
+          });
+        let expectedTeam = {
+          id: testTeam.id,
+          name: testTeam.name,
+          members: expectedTeamMembers,
+        };
+        const updatedTeam = {
+          name: 'The Beets',
+        };
 
-  //       expectedBoard = {
-  //         ...expectedBoard,
-  //         name: updatedBoard.name,
-  //         team_id: updatedBoard.team_id,
-  //       };
+        expectedTeam = {
+          ...expectedTeam,
+          name: updatedTeam.name,
+        };
 
-  //       return supertest(app)
-  //         .patch(`/api/boards/${boardId}`)
-  //         .set('Authorization', helpers.makeAuthHeader(testUser))
-  //         .send({
-  //           ...updatedBoard,
-  //           fieldToIgnore: 'this should not be in the GET response',
-  //         })
-  //         .expect(204)
-  //         .then((res) =>
-  //           supertest(app)
-  //             .get(`/api/boards/${boardId}`)
-  //             .set('Authorization', helpers.makeAuthHeader(testUser))
-  //             .expect(expectedBoard)
-  //         );
-  //     });
+        return supertest(app)
+          .patch(`/api/teams/${teamId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .send({
+            ...updatedTeam,
+            fieldToIgnore: 'this should not be in the GET response',
+          })
+          .expect(204)
+          .then((res) =>
+            supertest(app)
+              .get(`/api/teams/${teamId}`)
+              .set('Authorization', helpers.makeAuthHeader(testUser))
+              .expect(expectedTeam)
+          );
+      });
 
-  //     const requiredFields = ['name', 'team_id'];
+      const requiredFields = ['name'];
 
-  //     requiredFields.forEach((field) => {
-  //       const boardId = 1;
-  //       const updatedBoard = {
-  //         name: 'Beets Board',
-  //         team_id: 1,
-  //       };
+      requiredFields.forEach((field) => {
+        const teamId = testTeam.id;
+        const updatedTeam = {
+          name: 'The Beets',
+        };
 
-  //       it(`responds with 400 and an error message when the '${field}' is missing`, () => {
-  //         delete updatedBoard[field];
+        it(`responds with 400 and an error message when the '${field}' is missing`, () => {
+          delete updatedTeam[field];
 
-  //         return supertest(app)
-  //           .patch(`/api/boards/${boardId}`)
-  //           .set('Authorization', helpers.makeAuthHeader(testUser))
-  //           .send(updatedBoard)
-  //           .expect(400, {
-  //             error: `Missing '${field}' in request body`,
-  //           });
-  //       });
-  //     });
+          return supertest(app)
+            .patch(`/api/teams/${teamId}`)
+            .set('Authorization', helpers.makeAuthHeader(testUser))
+            .send(updatedTeam)
+            .expect(400, {
+              error: `Missing '${field}' in request body`,
+            });
+        });
+      });
 
-  //     it(`responds with 401 when board owner's user_id !== auth user_id`, () => {
-  //       const boardId = 3;
-  //       const updatedBoard = {
-  //         name: 'BEET IT',
-  //         team_id: testTeams[1].id,
-  //       };
+      it(`responds with 401 when team owner's user_id !== auth user_id`, () => {
+        const teamId = 3;
+        const updatedTeam = {
+          name: 'BEET IT',
+        };
 
-  //       return supertest(app)
-  //         .patch(`/api/boards/${boardId}`)
-  //         .set('Authorization', helpers.makeAuthHeader(testUser))
-  //         .send(updatedBoard)
-  //         .expect(401, {
-  //           error: `Unauthorized request`,
-  //         });
-  //     });
-  //   });
-  // });
+        return supertest(app)
+          .patch(`/api/teams/${teamId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .send(updatedTeam)
+          .expect(401, {
+            error: `Unauthorized request`,
+          });
+      });
+    });
+  });
 
   // describe('DELETE /api/boards/:boardId', () => {
   //   context('Given no boards', () => {
