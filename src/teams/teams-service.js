@@ -73,14 +73,14 @@ const TeamsService = {
       .first()
       .update(updatedTeam);
   },
-  // deleteBoard(db, boardId) {
-  //   return db
-  //     .from('boards')
-  //     .select('*')
-  //     .where('boards.id', boardId)
-  //     .first()
-  //     .delete();
-  // },
+  deleteTeam(db, teamId) {
+    return db
+      .from('teams')
+      .select('*')
+      .where('teams.id', teamId)
+      .first()
+      .delete();
+  },
   teamReducer(members) {
     return members.reduce((team, member) => {
       const { id, name, ...theMember } = member;

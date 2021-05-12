@@ -71,20 +71,24 @@ teamsRouter
         res.status(204).end();
       })
       .catch(next);
+  })
+  .delete((req, res, next) => {
+    const { teamId } = req.params;
+
+    const teamMember = res.team.members.find(
+      (member) => member.user_id === req.user.id
+    );
+
+    if (!teamMember.owner)
+      return res.status(401).json({
+        error: 'Unauthorized request',
+      });
+
+    TeamsService.deleteTeam(req.app.get('db'), teamId)
+      .then(() => {
+        res.status(204).end();
+      })
+      .catch(next);
   });
-//   .delete((req, res, next) => {
-//     const { boardId } = req.params;
-
-//     if (!res.board.owner)
-//       return res.status(401).json({
-//         error: 'Unauthorized request',
-//       });
-
-//     TeamsService.deleteBoard(req.app.get('db'), boardId)
-//       .then(() => {
-//         res.status(204).end();
-//       })
-//       .catch(next);
-//   });
 
 module.exports = teamsRouter;

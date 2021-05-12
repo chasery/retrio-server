@@ -297,12 +297,15 @@ describe('Teams Endpoints', function () {
       it('responds with 204 and ignores bad key value pair', () => {
         const teamId = testTeam.id;
         const expectedTeamMembers = testTeamMembers
-          .filter((member) => member.team_id === testTeam.id)
-          .map((member) => {
+          .filter((teamMember) => teamMember.team_id === testTeam.id)
+          .map((teamMember) => {
             const expectedUser = testUsers.find(
-              (user) => user.id === member.user_id
+              (user) => user.id === teamMember.user_id
             );
-            return helpers.makeExpectedTeamMember(expectedUser, member.owner);
+            return helpers.makeExpectedTeamMember(
+              expectedUser,
+              teamMember.owner
+            );
           });
         let expectedTeam = {
           id: testTeam.id,
@@ -372,59 +375,56 @@ describe('Teams Endpoints', function () {
     });
   });
 
-  // describe('DELETE /api/boards/:boardId', () => {
-  //   context('Given no boards', () => {
-  //     beforeEach(() => helpers.seedUsers(db, testUsers));
+  describe('DELETE /api/teams/:teamId', () => {
+    context('Given no teams', () => {
+      beforeEach(() => helpers.seedUsers(db, testUsers));
 
-  //     it('responds with 404', () => {
-  //       const boardId = 123456;
+      it('responds with 404', () => {
+        const teamId = 123456;
 
-  //       return supertest(app)
-  //         .delete(`/api/boards/${boardId}`)
-  //         .set('Authorization', helpers.makeAuthHeader(testUser))
-  //         .expect(404, { error: "Board doesn't exist" });
-  //     });
-  //   });
+        return supertest(app)
+          .delete(`/api/teams/${teamId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(404, { error: "Team doesn't exist" });
+      });
+    });
 
-  //   context('Given there are boards', () => {
-  //     beforeEach('insert boards', async () => {
-  //       await helpers.seedUsers(db, testUsers);
-  //       await helpers.seedTeams(db, testTeams, testTeamMembers);
-  //       await helpers.seedBoards(db, testBoards, testUserBoards, testCards);
-  //     });
+    context('Given there are teams', () => {
+      beforeEach('insert teams', async () => {
+        await helpers.seedUsers(db, testUsers);
+        await helpers.seedTeams(db, testTeams, testTeamMembers);
+      });
 
-  //     it('responds with 204 and the board is deleted in the db', () => {
-  //       const boardId = 1;
-  //       const expectedBoards = testUserBoards
-  //         .filter(
-  //           (userBoard) =>
-  //             userBoard.user_id === testUser.id &&
-  //             userBoard.board_id !== boardId
-  //         )
-  //         .map((userBoard) => {
-  //           let board = testBoards.find(
-  //             (board) => board.id === userBoard.board_id
-  //           );
-  //           return helpers.makeExpectedBoard({
-  //             ...board,
-  //             owner: userBoard.owner,
-  //           });
-  //         })
-  //         .sort(function (a, b) {
-  //           return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-  //         });
+      it('responds with 204 and the team is deleted in the db', () => {
+        const teamId = testTeam.id;
+        const expectedTeams = testTeamMembers
+          .filter(
+            (teamMember) =>
+              teamMember.user_id === testUser.id &&
+              teamMember.team_id !== teamId
+          )
+          .map((teamMember) => {
+            let team = testTeams.find((team) => team.id === teamMember.team_id);
+            return helpers.makeExpectedTeam({
+              ...team,
+              owner: teamMember.owner,
+            });
+          })
+          .sort(function (a, b) {
+            return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+          });
 
-  //       return supertest(app)
-  //         .delete(`/api/boards/${boardId}`)
-  //         .set('Authorization', helpers.makeAuthHeader(testUser))
-  //         .expect(204)
-  //         .then((res) =>
-  //           supertest(app)
-  //             .get('/api/boards')
-  //             .set('Authorization', helpers.makeAuthHeader(testUser))
-  //             .expect(expectedBoards)
-  //         );
-  //     });
-  //   });
-  // });
+        return supertest(app)
+          .delete(`/api/teams/${teamId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(204)
+          .then((res) =>
+            supertest(app)
+              .get('/api/teams')
+              .set('Authorization', helpers.makeAuthHeader(testUser))
+              .expect(expectedTeams)
+          );
+      });
+    });
+  });
 });
