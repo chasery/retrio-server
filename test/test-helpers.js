@@ -288,22 +288,41 @@ function makeExpectedBoard(board, cards) {
   return expectedBoard;
 }
 
-function makeExpectedCard(user, card) {
-  const expectedUser = {
-    user_id: user.id,
-    email: user.email,
-    first_name: user.first_name,
-    last_name: user.last_name,
-  };
-
-  return {
+function makeExpectedBoardCard(user, card) {
+  let expectedCard = {
     card_id: card.id,
     category: card.category,
     headline: card.headline,
     text: card.text,
     created_at: card.created_at.toISOString(),
     updated_at: card.updated_at.toISOString(),
-    user: expectedUser,
+  };
+
+  if (user) {
+    expectedCard = {
+      ...expectedCard,
+      user: {
+        user_id: user.id,
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+      },
+    };
+  }
+
+  return expectedCard;
+}
+
+function makeExpectedCard(card) {
+  return {
+    id: card.id,
+    board_id: card.board_id,
+    category: card.category,
+    headline: card.headline,
+    text: card.text,
+    created_by: card.created_by,
+    created_at: card.created_at.toISOString(),
+    updated_at: card.updated_at.toISOString(),
   };
 }
 
@@ -400,7 +419,7 @@ function makeMaliciousCard(user) {
     created_by: user.id,
   };
   const expectedCard = {
-    ...makeExpectedCard(user, maliciousCard),
+    ...makeExpectedBoardCard(user, maliciousCard),
     headline:
       'Naughty naughty very naughty &lt;script&gt;alert("xss");&lt;/script&gt;',
     text: `Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`,
@@ -533,6 +552,7 @@ module.exports = {
   makeExpectedTeam,
   makeExpectedTeamMember,
   makeExpectedBoard,
+  makeExpectedBoardCard,
   makeExpectedCard,
   makeMaliciousTeam,
   makeMaliciousBoard,

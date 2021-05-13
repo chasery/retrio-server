@@ -1,4 +1,5 @@
 const BoardsService = require('../boards/boards-service');
+const CardsService = require('../cards/cards-service');
 const TeamsService = require('../teams/teams-service');
 
 async function validateBoardRequest(req, res, next) {
@@ -25,6 +26,41 @@ async function validateBoardRequest(req, res, next) {
       user.user_id,
       user.board_id
     );
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function validateCardRequest(req, res, next) {
+  try {
+    const card = await CardsService.getCardById(
+      req.app.get('db'),
+      req.params.cardId
+    );
+
+    if (!card)
+      return res.status(404).json({
+        error: `Card doesn't exist`,
+      });
+
+    const userBoard = await BoardsService.getUsersByBoardId(
+      req.app.get('db'),
+      card.board_id
+    );
+
+    const currentUser = userBoard.find((user) => user.user_id === req.user.id);
+
+    if (
+      !currentUser ||
+      (card.created_by !== currentUser.user_id && !currentUser.owner)
+    ) {
+      return res.status(401).json({
+        error: 'Unauthorized request',
+      });
+    }
+
+    res.card = card;
     next();
   } catch (error) {
     next(error);
@@ -62,5 +98,6 @@ async function validateTeamRequest(req, res, next) {
 
 module.exports = {
   validateBoardRequest,
+  validateCardRequest,
   validateTeamRequest,
 };

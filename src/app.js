@@ -8,6 +8,7 @@ const usersRouter = require('./users/users-router');
 const authRouter = require('./auth/auth-router');
 const teamsRouter = require('./teams/teams-router');
 const boardsRouter = require('./boards/boards-router');
+const cardsRouter = require('./cards/cards-router');
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use('/api/users', usersRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/teams', teamsRouter);
 app.use('/api/boards', boardsRouter);
+app.use('/api/cards', cardsRouter);
 
 app.use(function errorHandler(error, req, res, next) {
   let response;

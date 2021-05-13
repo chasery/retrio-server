@@ -1,5 +1,5 @@
 const xss = require('xss');
-const { serializeCard } = require('../cards/cards-service');
+const { serializeBoardCard } = require('../cards/cards-service');
 
 const BoardsService = {
   getUserBoards(db, userId) {
@@ -51,7 +51,7 @@ const BoardsService = {
     return db
       .from('user_boards')
       .where('board_id', boardId)
-      .select('board_id', 'user_id');
+      .select('board_id', 'user_id', 'owner');
   },
   getTeamBoards(db, teamId) {
     return db.from('boards').where('team_id', teamId).select('board_id');
@@ -149,7 +149,7 @@ const BoardsService = {
       };
 
     if (board.cards)
-      board.cards = board.cards.map((card) => serializeCard(card));
+      board.cards = board.cards.map((card) => serializeBoardCard(card));
 
     serializedBoard = {
       ...serializedBoard,

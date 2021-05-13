@@ -127,7 +127,7 @@ describe('Boards Endpoints', function () {
             const expectedUser = testUsers.find(
               (user) => user.id === card.created_by
             );
-            return helpers.makeExpectedCard(expectedUser, card);
+            return helpers.makeExpectedBoardCard(expectedUser, card);
           });
         const expectedBoard = {
           id: testBoard.id,
@@ -290,7 +290,7 @@ describe('Boards Endpoints', function () {
             const expectedUser = testUsers.find(
               (user) => user.id === card.created_by
             );
-            return helpers.makeExpectedCard(expectedUser, card);
+            return helpers.makeExpectedBoardCard(expectedUser, card);
           });
         let expectedBoard = {
           id: testBoard.id,
@@ -330,7 +330,7 @@ describe('Boards Endpoints', function () {
             const expectedUser = testUsers.find(
               (user) => user.id === card.created_by
             );
-            return helpers.makeExpectedCard(expectedUser, card);
+            return helpers.makeExpectedBoardCard(expectedUser, card);
           });
         let expectedBoard = {
           id: testBoard.id,

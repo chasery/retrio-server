@@ -1,66 +1,68 @@
 const express = require('express');
 const path = require('path');
-const RackItemsService = require('./cards-service');
+const { getUsersByBoardId } = require('../boards/boards-service');
+const CardsService = require('./cards-service');
 const { requireAuth } = require('../middleware/jwt-auth');
-const { validateRackItemRequest } = require('../middleware/validate-request');
+const { validateCardRequest } = require('../middleware/validate-request');
 
-const rackItemsRouter = express.Router();
+const cardsRouter = express.Router();
 const jsonBodyParser = express.json();
 
-rackItemsRouter
-  .route('/')
-  .post(requireAuth, jsonBodyParser, (req, res, next) => {
-    const { id } = req.user;
-    const { item_name, item_url, item_price, rack_id } = req.body;
-    const newRackItem = { item_name, item_price, rack_id };
+cardsRouter.route('/').post(requireAuth, jsonBodyParser, (req, res, next) => {
+  const { id } = req.user;
+  const { board_id, category, headline, text } = req.body;
+  const newCard = { board_id, category, text };
 
-    for (const [key, value] of Object.entries(newRackItem))
-      if (value == null)
-        return res.status(400).json({
-          error: `Missing '${key}' in request body`,
-        });
+  for (const [key, value] of Object.entries(newCard))
+    if (value == null)
+      return res.status(400).json({
+        error: `Missing '${key}' in request body`,
+      });
 
-    newRackItem.item_url = item_url;
-    newRackItem.user_id = id;
+  newCard.headline = headline;
+  newCard.created_by = id;
 
-    RackItemsService.insertRackItem(req.app.get('db'), newRackItem)
-      .then((item) => {
+  getUsersByBoardId(req.app.get('db'), board_id).then((users) => {
+    const user = users.find((user) => user.user_id === id);
+    if (!user)
+      return res.status(401).json({
+        error: `Unauthorized request`,
+      });
+
+    CardsService.insertCard(req.app.get('db'), newCard)
+      .then((card) => {
         res
           .status(201)
-          .location(path.posix.join(req.originalUrl, `/${item.item_id}`))
-          .json(RackItemsService.serializeRackItem(item));
+          .location(path.posix.join(req.originalUrl, `/${card.id}`))
+          .json(CardsService.serializeCard(card));
       })
       .catch(next);
   });
+});
 
-rackItemsRouter
-  .route('/:itemId')
+cardsRouter
+  .route('/:cardId')
   .all(requireAuth)
-  .all(validateRackItemRequest)
+  .all(validateCardRequest)
   .get((req, res, next) => {
-    res.json(RackItemsService.serializeRackItem(res.rackItem));
+    res.json(CardsService.serializeCard(res.card));
   })
   .patch(jsonBodyParser, (req, res, next) => {
     const { id } = req.user;
-    const { itemId } = req.params;
-    const { item_name, item_price, item_url } = req.body;
-    const updatedRackItem = { item_name, item_price };
+    const { cardId } = req.params;
+    const { category, headline, text } = req.body;
+    const updatedCard = { category, text };
 
-    for (const [key, value] of Object.entries(updatedRackItem))
+    for (const [key, value] of Object.entries(updatedCard))
       if (value == null)
         return res.status(400).json({
           error: `Missing '${key}' in request body`,
         });
 
-    updatedRackItem.item_url = item_url;
-    updatedRackItem.user_id = id;
+    updatedCard.headline = headline;
+    updatedCard.created_by = id;
 
-    RackItemsService.updateRackItem(
-      req.app.get('db'),
-      id,
-      itemId,
-      updatedRackItem
-    )
+    CardsService.updateCard(req.app.get('db'), id, cardId, updatedCard)
       .then((numRowsAffected) => {
         res.status(204).end();
       })
@@ -68,13 +70,13 @@ rackItemsRouter
   })
   .delete((req, res, next) => {
     const { id } = req.user;
-    const { itemId } = req.params;
+    const { cardId } = req.params;
 
-    RackItemsService.deleteRackItem(req.app.get('db'), id, itemId)
+    CardsService.deleteCard(req.app.get('db'), cardId)
       .then(() => {
         res.status(204).end();
       })
       .catch(next);
   });
 
-module.exports = rackItemsRouter;
+module.exports = cardsRouter;
