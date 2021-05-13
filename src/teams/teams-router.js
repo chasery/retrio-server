@@ -155,7 +155,7 @@ teamsRouter
       (member) => member.user_id === req.user.id
     );
 
-    if (!requestor.owner)
+    if (requestor.user_id !== req.user.id && !requestor.owner)
       return res.status(401).json({
         error: 'Unauthorized request',
       });
