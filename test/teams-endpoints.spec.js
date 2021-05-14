@@ -436,6 +436,7 @@ describe('Teams Endpoints', function () {
     beforeEach('insert teams', async () => {
       await helpers.seedUsers(db, testUsers);
       await helpers.seedTeams(db, testTeams, testTeamMembers);
+      await helpers.seedBoards(db, testBoards, testUserBoards, testCards);
     });
 
     const requiredFields = ['email'];
@@ -487,7 +488,7 @@ describe('Teams Endpoints', function () {
         });
     });
 
-    it(`responds with 201 and the new team`, function () {
+    it(`responds with 201 and the new team member is added to the team's boards`, function () {
       const teamId = testTeam.id;
       const newTeamMember = testUsers[2];
 
@@ -504,7 +505,13 @@ describe('Teams Endpoints', function () {
           expect(res.headers.location).to.eql(
             `/api/teams/${res.body.team_id}/members/${newTeamMember.id}`
           );
-        });
+        })
+        .then((res) =>
+          supertest(app)
+            .get(`/api/boards/${testBoards[0].id}`) // User doesn't have access to this board until added
+            .set('Authorization', helpers.makeAuthHeader(testUsers[2]))
+            .expect(200)
+        );
     });
   });
 
@@ -526,6 +533,7 @@ describe('Teams Endpoints', function () {
       beforeEach('insert teams', async () => {
         await helpers.seedUsers(db, testUsers);
         await helpers.seedTeams(db, testTeams, testTeamMembers);
+        await helpers.seedBoards(db, testBoards, testUserBoards, testCards);
       });
 
       it(`responds with 404 when team member doesn't exist`, () => {
@@ -538,13 +546,14 @@ describe('Teams Endpoints', function () {
           .expect(404, { error: "Team member doesn't exist" });
       });
 
-      it('responds with 204 and the team is deleted in the db', () => {
+      it('responds with 204 and the team member is deleted and can no longer access team boards', () => {
         const teamId = testTeam.id;
-        const teamMemberToDelete = testUsers[1].id;
+        const teamMemberToDelete = testUsers[1];
         const expectedTeamMembers = testTeamMembers
           .filter(
             (member) =>
-              member.team_id === teamId && member.user_id !== teamMemberToDelete
+              member.team_id === teamId &&
+              member.user_id !== teamMemberToDelete.id
           )
           .map((member) => {
             const expectedUser = testUsers.find(
@@ -559,7 +568,7 @@ describe('Teams Endpoints', function () {
         };
 
         return supertest(app)
-          .delete(`/api/teams/${teamId}/members/${teamMemberToDelete}`)
+          .delete(`/api/teams/${teamId}/members/${teamMemberToDelete.id}`)
           .set('Authorization', helpers.makeAuthHeader(testUser))
           .expect(204)
           .then((res) =>
@@ -567,6 +576,12 @@ describe('Teams Endpoints', function () {
               .get(`/api/teams/${teamId}`)
               .set('Authorization', helpers.makeAuthHeader(testUser))
               .expect(expectedTeam)
+          )
+          .then((res) =>
+            supertest(app)
+              .get(`/api/boards/${testBoards[0].id}`) // User doesn't have access to this board any longer
+              .set('Authorization', helpers.makeAuthHeader(teamMemberToDelete))
+              .expect(401)
           );
       });
     });

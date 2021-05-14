@@ -53,25 +53,35 @@ const BoardsService = {
       .where('board_id', boardId)
       .select('board_id', 'user_id', 'owner');
   },
-  getTeamBoards(db, teamId) {
-    return db.from('boards').where('team_id', teamId).select('board_id');
-  },
-  insertBoard(db, newBoard, user) {
+  insertBoard(db, newBoard, userId) {
     return db.transaction((trx) => {
       return trx
         .insert(newBoard)
         .into('boards')
         .returning('*')
         .then(([board]) => {
-          const { id } = board;
-          const newUserBoard = {
-            board_id: id,
-            user_id: user,
-            owner: true,
-          };
-          return this.insertUserBoard(trx, newUserBoard);
+          const { id, team_id } = board;
+
+          return trx
+            .from('team_members')
+            .where('team_id', team_id)
+            .select('user_id')
+            .then((teamMembers) => {
+              const members = teamMembers.map((member) => {
+                return {
+                  board_id: id,
+                  user_id: member.user_id,
+                  owner: member.user_id === userId ? true : false,
+                };
+              });
+
+              return trx.insert(members).into('user_boards');
+            })
+            .then(() => {
+              return { board_id: id, user_id: userId };
+            });
         })
-        .then(([userBoard]) => {
+        .then((userBoard) => {
           const { board_id, user_id } = userBoard;
           return this.getBoardById(trx, user_id, board_id);
         });

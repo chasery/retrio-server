@@ -1,5 +1,4 @@
 const xss = require('xss');
-const { insertUserBoard } = require('../boards/boards-service');
 const { serializeUser } = require('../users/users-service');
 
 const TeamsService = {
@@ -66,6 +65,35 @@ const TeamsService = {
   insertTeamMember(db, newTeamMember) {
     return db.insert(newTeamMember).into('team_members').returning('*');
   },
+  insertTeamMemberBoards(db, newTeamMember) {
+    return db.transaction((trx) => {
+      return this.insertTeamMember(trx, newTeamMember).then(([teamMember]) => {
+        const { team_id, user_id } = teamMember;
+
+        return trx
+          .from('boards')
+          .where('boards.team_id', team_id)
+          .select('boards.id')
+          .then((teamBoards) => {
+            if (teamBoards.length) {
+              const newUserBoards = teamBoards.map((board) => {
+                return {
+                  user_id,
+                  board_id: board.id,
+                  owner: false,
+                };
+              });
+              return trx
+                .insert(newUserBoards)
+                .into('user_boards')
+                .returning('*');
+            }
+            return;
+          })
+          .then(() => teamMember);
+      });
+    });
+  },
   updateTeam(db, teamId, updatedTeam) {
     return db
       .from('teams')
@@ -82,13 +110,37 @@ const TeamsService = {
       .first()
       .delete();
   },
-  deleteTeamMember(db, teamId, userId) {
-    return db
-      .from('team_members')
-      .select('*')
-      .where({ 'team_members.team_id': teamId, 'team_members.user_id': userId })
-      .first()
-      .delete();
+  deleteTeamMember(db, teamId, memberId) {
+    return db.transaction((trx) => {
+      return trx
+        .from('team_members')
+        .select('*')
+        .where({
+          'team_members.team_id': teamId,
+          'team_members.user_id': memberId,
+        })
+        .first()
+        .delete()
+        .then(() => {
+          return trx
+            .from('boards')
+            .where('boards.team_id', teamId)
+            .select('boards.id')
+            .then((teamBoards) => {
+              if (teamBoards.length) {
+                const boardIds = teamBoards.map((board) => board.id);
+
+                return trx
+                  .from('user_boards')
+                  .select('*')
+                  .whereIn('board_id', boardIds)
+                  .where('user_id', memberId)
+                  .delete();
+              }
+              return;
+            });
+        });
+    });
   },
   teamReducer(members) {
     return members.reduce((team, member) => {

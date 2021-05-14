@@ -126,12 +126,8 @@ teamsRouter
           owner: false,
         };
 
-        TeamsService.insertTeamMember(
-          req.app.get('db'),
-          newTeamMember,
-          req.user.id
-        )
-          .then(([teamMember]) => {
+        TeamsService.insertTeamMemberBoards(req.app.get('db'), newTeamMember)
+          .then((teamMember) => {
             res
               .status(201)
               .location(
